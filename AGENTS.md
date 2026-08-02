@@ -6,9 +6,9 @@ This repository is a Next.js 16 application using the App Router, React 19, Type
 
 ## Build, Test, and Development Commands
 
-- `npm install` installs the exact dependency versions recorded in `package-lock.json`.
 - `npm run dev` starts the local development server at `http://localhost:3000` with hot reload.
 - `npm run lint` runs ESLint with Next.js Core Web Vitals and TypeScript rules.
+- `npm run typecheck` checks TypeScript without emitting compiled files.
 - `npm run build` creates a production build and catches compilation and type errors.
 - `npm run start` serves the production build; run `npm run build` first.
 
@@ -18,7 +18,7 @@ Write strict TypeScript and prefer small, focused React components. Follow the e
 
 ## Testing Guidelines
 
-No automated test framework or coverage threshold is configured yet. Until one is added, every change must pass `npm run lint` and `npm run build`, followed by a focused browser check. When introducing tests, colocate them as `*.test.ts` or `*.test.tsx`, test observable behavior and error cases, and add the runner command to `package.json` and this guide.
+No automated test framework or coverage threshold is configured. After every change, run `npm run typecheck` and `npm run lint`; both must pass. For application changes, also run `npm run build` and perform a focused browser check. Name future tests `*.test.ts` or `*.test.tsx`, cover observable behavior and errors, and document the runner here.
 
 ## Commit & Pull Request Guidelines
 
