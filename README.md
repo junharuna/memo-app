@@ -2,7 +2,23 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies and prepare the local environment:
+
+```bash
+npm install
+cp .env.example .env.local
+```
+
+Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in
+`.env.local`. Use `lib/supabase/client.ts` from Client Components and
+`lib/supabase/server.ts` from server code. The root `proxy.ts` refreshes auth
+cookies for SSR requests. Never commit `.env.local`.
+
+Check the configured Supabase connection with `GET /api/health/supabase`. It
+returns `{"status":"ok"}` with HTTP 200 when Supabase is reachable, or a
+generic `{"status":"error"}` with HTTP 503 without exposing credentials.
+
+Then, run the development server:
 
 ```bash
 npm run dev
