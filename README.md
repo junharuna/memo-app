@@ -14,6 +14,11 @@ Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in
 `lib/supabase/server.ts` from server code. The root `proxy.ts` refreshes auth
 cookies for SSR requests. Never commit `.env.local`.
 
+For passwordless email sign-up, add the application origin to Supabase Auth's
+allowed redirect URLs (for example, `http://localhost:3000` locally and the
+production origin when deployed). The sign-up form redirects confirmed users
+to that origin.
+
 Check the configured Supabase connection with `GET /api/health/supabase`. It
 returns `{"status":"ok"}` with HTTP 200 when Supabase is reachable, or a
 generic `{"status":"error"}` with HTTP 503 without exposing credentials.

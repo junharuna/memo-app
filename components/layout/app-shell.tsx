@@ -176,34 +176,38 @@ function Header() {
           </kbd>
         </label>
 
-        <div className="ml-auto hidden items-center gap-2 sm:flex">
-          <button
-            aria-label="通知を見る"
-            className="header-icon-button"
-            type="button"
-          >
-            <Icon name="bell" size={19} />
-            <span className="absolute right-2.5 top-2.5 size-1.5 rounded-full bg-blue-600 ring-2 ring-[var(--surface)]" />
-          </button>
-          <button
-            aria-label="設定を開く"
-            className="header-icon-button"
-            type="button"
-          >
-            <Icon name="settings" size={19} />
-          </button>
-          <span className="mx-1 h-5 w-px bg-[var(--hairline)]" aria-hidden="true" />
-          <button
-            aria-label="プロフィールを開く"
-            className="avatar transition hover:ring-4 hover:ring-blue-500/10"
-            type="button"
-          >
-            H
-          </button>
-        </div>
-
-        <div className="sm:hidden">
-          <NewMemoButton compact />
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <Link className="primary-button whitespace-nowrap px-3 sm:px-4" href="/signup">
+            サインアップ
+          </Link>
+          <div className="hidden items-center gap-2 sm:flex">
+            <button
+              aria-label="通知を見る"
+              className="header-icon-button"
+              type="button"
+            >
+              <Icon name="bell" size={19} />
+              <span className="absolute right-2.5 top-2.5 size-1.5 rounded-full bg-blue-600 ring-2 ring-[var(--surface)]" />
+            </button>
+            <button
+              aria-label="設定を開く"
+              className="header-icon-button"
+              type="button"
+            >
+              <Icon name="settings" size={19} />
+            </button>
+            <span className="mx-1 h-5 w-px bg-[var(--hairline)]" aria-hidden="true" />
+            <button
+              aria-label="プロフィールを開く"
+              className="avatar transition hover:ring-4 hover:ring-blue-500/10"
+              type="button"
+            >
+              H
+            </button>
+          </div>
+          <div className="sm:hidden">
+            <NewMemoButton compact />
+          </div>
         </div>
       </div>
     </header>

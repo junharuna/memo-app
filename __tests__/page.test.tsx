@@ -19,6 +19,7 @@ describe("Home", () => {
     expect(screen.getAllByRole("button", { name: "新しいメモを作成" })).not.toHaveLength(0);
     expect(screen.getByRole("navigation", { name: "メインナビゲーション" })).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Memora ホーム" })).not.toHaveLength(0);
+    expect(screen.getByRole("link", { name: "サインアップ" })).toHaveAttribute("href", "/signup");
   });
 
   it("renders useful starter content without requiring backend data", () => {
