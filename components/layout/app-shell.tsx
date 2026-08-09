@@ -13,13 +13,12 @@ type NavigationItem = {
   icon: IconName;
   label: string;
   href: string;
-  count?: number;
   active?: boolean;
 };
 
 const navigationItems: NavigationItem[] = [
-  { icon: "inbox", label: "すべてのメモ", href: "/", count: 24, active: true },
-  { icon: "star", label: "お気に入り", href: "/?view=favorites", count: 6 },
+  { icon: "inbox", label: "すべてのメモ", href: "/", active: true },
+  { icon: "star", label: "お気に入り", href: "/?view=favorites" },
   { icon: "tag", label: "タグ", href: "/?view=tags" },
   { icon: "archive", label: "アーカイブ", href: "/?view=archive" },
   { icon: "trash", label: "ゴミ箱", href: "/?view=trash" },
@@ -97,11 +96,6 @@ function Sidebar() {
                   size={18}
                 />
                 <span>{item.label}</span>
-                {item.count !== undefined && (
-                  <span className="ml-auto text-xs font-medium tabular-nums text-[var(--muted-soft)]">
-                    {item.count}
-                  </span>
-                )}
               </Link>
             </li>
           ))}

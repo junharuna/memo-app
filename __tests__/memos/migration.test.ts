@@ -7,6 +7,10 @@ const migrationPath = join(
   process.cwd(),
   "supabase/migrations/20260809133220_create_memos.sql",
 );
+const readPolicyMigrationPath = join(
+  process.cwd(),
+  "supabase/migrations/20260809143727_enable_memo_reads.sql",
+);
 
 it("メモテーブルを所有権付きで作成しINSERTだけを許可する", () => {
   const sql = readFileSync(migrationPath, "utf8");
@@ -17,4 +21,15 @@ it("メモテーブルを所有権付きで作成しINSERTだけを許可する"
   expect(sql).toMatch(/for insert[\s\S]+with check \(\(select auth\.uid\(\)\) = owner_id\)/i);
   expect(sql).toMatch(/grant insert \(owner_id, title, content\) on table public\.memos to authenticated/i);
   expect(sql).not.toMatch(/grant (select|update|delete)/i);
+});
+
+it("認証済みユーザーが自分のメモだけを更新日時順で取得できるようにする", () => {
+  const sql = readFileSync(readPolicyMigrationPath, "utf8");
+
+  expect(sql).toMatch(/grant select on table public\.memos to authenticated/i);
+  expect(sql).toMatch(
+    /for select[\s\S]+using \(\(select auth\.uid\(\)\) = owner_id\)/i,
+  );
+  expect(sql).toMatch(/on public\.memos \(owner_id, updated_at desc\)/i);
+  expect(sql).not.toMatch(/\bto anon\b/i);
 });

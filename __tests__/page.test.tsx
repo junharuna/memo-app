@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import Home from "@/app/page";
 import { AppShell } from "@/components/layout/app-shell";
+import { listMemosForCurrentUser } from "@/lib/memos/queries";
 import { getAuthState } from "@/lib/supabase/auth";
 
 jest.mock("../app/auth/actions", () => ({
@@ -22,10 +23,33 @@ jest.mock("../lib/supabase/auth", () => ({
   getAuthState: jest.fn(),
 }));
 
+jest.mock("../lib/memos/queries", () => ({
+  listMemosForCurrentUser: jest.fn(),
+}));
+
 const mockGetAuthState = jest.mocked(getAuthState);
+const mockListMemos = jest.mocked(listMemosForCurrentUser);
+
+const storedMemos = [
+  {
+    id: "11111111-1111-4111-8111-111111111111",
+    title: "Supabaseのメモ",
+    content: "# 本文\n\n**保存済み**の内容",
+    created_at: "2026-08-09T01:00:00.000Z",
+    updated_at: "2026-08-09T02:00:00.000Z",
+  },
+  {
+    id: "22222222-2222-4222-8222-222222222222",
+    title: "2件目のメモ",
+    content: "チェックリスト\n\n- [ ] 確認する",
+    created_at: "2026-08-08T01:00:00.000Z",
+    updated_at: "2026-08-08T02:00:00.000Z",
+  },
+];
 
 async function renderHome(isAuthenticated = false) {
   mockGetAuthState.mockResolvedValue({ isAuthenticated });
+  mockListMemos.mockResolvedValue({ status: "success", memos: storedMemos });
   const page = await Home();
 
   return render(
@@ -69,8 +93,42 @@ describe("Home", () => {
     expect(screen.queryByRole("link", { name: "サインイン" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "サインアップ" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: "最近のメモ" })).toBeInTheDocument();
-    expect(screen.getAllByRole("article")).toHaveLength(3);
-    expect(screen.getByText("プロダクトアイデア")).toBeInTheDocument();
-    expect(screen.getByText("デザインシステム")).toBeInTheDocument();
+    expect(screen.getAllByRole("article")).toHaveLength(2);
+    expect(screen.getByRole("link", { name: "Supabaseのメモを開く" })).toHaveAttribute(
+      "href",
+      "/memos/11111111-1111-4111-8111-111111111111",
+    );
+    expect(screen.getByText("2件目のメモ")).toBeInTheDocument();
+    expect(screen.getByText("本文 保存済みの内容")).toBeInTheDocument();
+    expect(screen.getByText("チェックリスト 確認する")).toBeInTheDocument();
+    expect(document.querySelector(".markdown-preview")).not.toBeInTheDocument();
+    expect(document.querySelector("article strong")).not.toBeInTheDocument();
+    expect(document.querySelector("article ul")).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(screen.queryByText("プロダクトアイデア")).not.toBeInTheDocument();
+    expect(mockListMemos).toHaveBeenCalledTimes(1);
+  });
+
+  it("保存済みメモがない場合は作成導線付きの空状態を表示する", async () => {
+    mockGetAuthState.mockResolvedValue({ isAuthenticated: true });
+    mockListMemos.mockResolvedValue({ status: "success", memos: [] });
+
+    render(await Home());
+
+    expect(screen.getByRole("heading", { name: "まだメモがありません" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "最初のメモを作成" })).toHaveAttribute(
+      "href",
+      "/memos/new",
+    );
+  });
+
+  it("メモ取得に失敗した場合は再試行できるエラー状態を表示する", async () => {
+    mockGetAuthState.mockResolvedValue({ isAuthenticated: true });
+    mockListMemos.mockResolvedValue({ status: "error" });
+
+    render(await Home());
+
+    expect(screen.getByRole("alert")).toHaveTextContent("メモを読み込めませんでした");
+    expect(screen.getByRole("link", { name: "もう一度試す" })).toHaveAttribute("href", "/");
   });
 });

@@ -1,0 +1,129 @@
+- generic [active] [ref=f33e1]:
+  - generic [ref=f33e2]:
+    - link "メインコンテンツへ移動" [ref=f33e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - complementary [ref=f33e4]:
+      - link "TagNote ホーム" [ref=f33e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f33e11]: TagNote
+      - link "新しいメモを作成" [ref=f33e13] [cursor=pointer]:
+        - /url: /memos/new
+        - generic [ref=f33e16]: 新しいメモ
+      - navigation "メインナビゲーション" [ref=f33e17]:
+        - list [ref=f33e18]:
+          - listitem [ref=f33e19]:
+            - link "すべてのメモ" [ref=f33e20] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=f33e25]:
+            - link "お気に入り" [ref=f33e26] [cursor=pointer]:
+              - /url: /?view=favorites
+          - listitem [ref=f33e30]:
+            - link "タグ" [ref=f33e31] [cursor=pointer]:
+              - /url: /?view=tags
+          - listitem [ref=f33e36]:
+            - link "アーカイブ" [ref=f33e37] [cursor=pointer]:
+              - /url: /?view=archive
+          - listitem [ref=f33e42]:
+            - link "ゴミ箱" [ref=f33e43] [cursor=pointer]:
+              - /url: /?view=trash
+      - generic [ref=f33e47]:
+        - generic [ref=f33e48]:
+          - paragraph [ref=f33e49]: カテゴリ
+          - button "カテゴリを追加" [ref=f33e50] [cursor=pointer]
+        - list [ref=f33e53]:
+          - listitem [ref=f33e54]:
+            - link "仕事" [ref=f33e55] [cursor=pointer]:
+              - /url: /#category-仕事
+          - listitem [ref=f33e57]:
+            - link "個人" [ref=f33e58] [cursor=pointer]:
+              - /url: /#category-個人
+          - listitem [ref=f33e60]:
+            - link "アイデア" [ref=f33e61] [cursor=pointer]:
+              - /url: /#category-アイデア
+      - generic [ref=f33e65]:
+        - generic [ref=f33e66]: H
+        - generic [ref=f33e67]:
+          - generic [ref=f33e68]: Haruna
+          - generic [ref=f33e69]: Personal plan
+        - button "アカウントメニューを開く" [ref=f33e70] [cursor=pointer]
+    - generic [ref=f33e72]:
+      - banner [ref=f33e73]:
+        - generic [ref=f33e74]:
+          - generic [ref=f33e75]:
+            - searchbox "メモを検索" [ref=f33e79]
+            - generic [ref=f33e80]: ⌘ K
+          - generic [ref=f33e81]:
+            - generic [ref=f33e82]:
+              - button "通知を見る" [ref=f33e83] [cursor=pointer]
+              - button "設定を開く" [ref=f33e88] [cursor=pointer]
+            - button "サインアウト" [ref=f33e93] [cursor=pointer]
+      - main [ref=f33e98]:
+        - generic [ref=f33e99]:
+          - generic [ref=f33e100]:
+            - generic [ref=f33e101]:
+              - paragraph [ref=f33e102]: YOUR LIBRARY
+              - heading "すべてのメモ" [level=1] [ref=f33e103]
+              - paragraph [ref=f33e104]: 大切な考えを、いつでも見つけられる場所に。
+            - generic [ref=f33e105]:
+              - button "メモの表示方法を変更" [ref=f33e106] [cursor=pointer]:
+                - generic [ref=f33e112]: グリッド
+              - link "新しいメモを作成" [ref=f33e113] [cursor=pointer]:
+                - /url: /memos/new
+                - text: 新しいメモ
+          - region [ref=f33e116]:
+            - generic [ref=f33e117]:
+              - generic [ref=f33e118]: QUICK CAPTURE
+              - heading "浮かんだことを、そのまま。" [level=2] [ref=f33e123]
+              - paragraph [ref=f33e124]: マークダウンで軽やかに書き始めて、カテゴリやタグはあとから整えられます。
+              - button "クイックメモを開く" [ref=f33e125] [cursor=pointer]
+          - region [ref=f33e140]:
+            - heading "最近のメモ" [level=2] [ref=f33e142]
+            - generic [ref=f33e143]:
+              - article [ref=f33e144]:
+                - link "メモ2を開く" [ref=f33e145] [cursor=pointer]:
+                  - /url: /memos/76d03a51-d1d6-418a-a39b-57169f5c1faf
+                - generic [ref=f33e150]:
+                  - heading "メモ2" [level=3] [ref=f33e151]
+                  - paragraph [ref=f33e152]: 引用 インラインコード
+                - generic [ref=f33e153]:
+                  - generic [ref=f33e155]: 更新
+                  - generic [ref=f33e156]: ·
+                  - time [ref=f33e157]: 2026/08/09 23:29
+              - article [ref=f33e158]:
+                - link "メモ1を開く" [ref=f33e159] [cursor=pointer]:
+                  - /url: /memos/8e184581-0edd-411d-9122-3a589638f918
+                - generic [ref=f33e164]:
+                  - heading "メモ1" [level=3] [ref=f33e165]
+                  - paragraph [ref=f33e166]: 見出し a b c
+                - generic [ref=f33e167]:
+                  - generic [ref=f33e169]: 更新
+                  - generic [ref=f33e170]: ·
+                  - time [ref=f33e171]: 2026/08/09 23:28
+              - article [ref=f33e172]:
+                - link "テストタイトルを開く" [ref=f33e173] [cursor=pointer]:
+                  - /url: /memos/bc11b2a3-ba16-446a-b6d2-a357fd848179
+                - generic [ref=f33e178]:
+                  - heading "テストタイトル" [level=3] [ref=f33e179]
+                  - paragraph [ref=f33e180]: H1 見出し H2 見出し H3見出し a b c
+                - generic [ref=f33e181]:
+                  - generic [ref=f33e183]: 更新
+                  - generic [ref=f33e184]: ·
+                  - time [ref=f33e185]: 2026/08/09 22:53
+          - region [ref=f33e186]:
+            - generic [ref=f33e187]:
+              - heading "カテゴリ" [level=2] [ref=f33e188]
+              - button "管理する" [ref=f33e189] [cursor=pointer]
+            - generic [ref=f33e192]:
+              - button "仕事 10件のメモ" [ref=f33e193] [cursor=pointer]:
+                - generic [ref=f33e197]:
+                  - generic [ref=f33e198]: 仕事
+                  - generic [ref=f33e199]: 10件のメモ
+              - button "個人 8件のメモ" [ref=f33e202] [cursor=pointer]:
+                - generic [ref=f33e206]:
+                  - generic [ref=f33e207]: 個人
+                  - generic [ref=f33e208]: 8件のメモ
+              - button "アイデア 6件のメモ" [ref=f33e211] [cursor=pointer]:
+                - generic [ref=f33e215]:
+                  - generic [ref=f33e216]: アイデア
+                  - generic [ref=f33e217]: 6件のメモ
+  - button "Open Next.js Dev Tools" [ref=f33e225] [cursor=pointer]

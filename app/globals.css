@@ -592,6 +592,11 @@ a {
   clip-path: inset(50%);
 }
 
+.memo-detail-markdown {
+  font-size: 15px;
+  line-height: 1.8;
+}
+
 @media (max-width: 639px) {
   .search-field {
     width: 40px;

@@ -1,0 +1,57 @@
+- generic [active] [ref=f17e1]:
+  - generic [ref=f17e2]:
+    - link "メインコンテンツへ移動" [ref=f17e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=f17e4]:
+      - banner [ref=f17e5]:
+        - generic [ref=f17e6]:
+          - link "TagNote ホーム" [ref=f17e8] [cursor=pointer]:
+            - /url: /
+            - generic [ref=f17e13]: TagNote
+          - searchbox "メモを検索" [ref=f17e18]
+          - generic [ref=f17e19]:
+            - button "サインアウト" [ref=f17e21] [cursor=pointer]
+            - link "新しいメモを作成" [ref=f17e26] [cursor=pointer]:
+              - /url: /memos/new
+      - main [ref=f17e29]:
+        - generic [ref=f17e30]:
+          - generic [ref=f17e31]:
+            - paragraph [ref=f17e32]: NEW MEMO
+            - heading "新しいメモ" [level=1] [ref=f17e33]
+            - paragraph [ref=f17e34]: Markdownで書きながら、右側のプレビューで仕上がりを確認できます。
+          - form "メモを作成" [ref=f17e35]:
+            - region [ref=f17e36]:
+              - generic [ref=f17e37]:
+                - heading "メモを書く" [level=2] [ref=f17e38]
+                - generic [ref=f17e39]: Markdown
+              - generic [ref=f17e40]:
+                - text: タイトル
+                - textbox "タイトル" [ref=f17e41]:
+                  - /placeholder: メモのタイトル
+                - paragraph [ref=f17e42]: 必須・200文字以内
+              - generic [ref=f17e43]:
+                - text: 本文
+                - textbox "本文" [ref=f17e44]:
+                  - /placeholder: "# 見出し\\n\\nMarkdownで本文を書けます。"
+                - generic [ref=f17e45]:
+                  - paragraph [ref=f17e46]: CommonMarkとGitHub Flavored Markdownに対応し、Enterで改行できます。安全のためHTMLは実行されません。
+                  - paragraph [ref=f17e47]: 0 / 100,000
+              - button "メモを保存" [ref=f17e48] [cursor=pointer]
+            - region "Markdownプレビュー" [ref=f17e51]:
+              - heading "プレビュー" [level=2] [ref=f17e53]
+              - paragraph [ref=f17e56]: 本文を入力すると、ここにプレビューが表示されます。
+    - navigation "モバイルナビゲーション" [ref=f17e57]:
+      - list [ref=f17e58]:
+        - listitem [ref=f17e59]:
+          - link "すべてのメモ" [ref=f17e60] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f17e65]:
+          - link "お気に入り" [ref=f17e66] [cursor=pointer]:
+            - /url: /?view=favorites
+        - listitem [ref=f17e70]:
+          - link "カテゴリ" [ref=f17e71] [cursor=pointer]:
+            - /url: /#categories
+        - listitem [ref=f17e75]:
+          - link "設定" [ref=f17e76] [cursor=pointer]:
+            - /url: /?view=settings
+  - button "Open Next.js Dev Tools" [ref=f17e86] [cursor=pointer]

@@ -1,9 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkBreaks from "remark-breaks";
-import remarkGfm from "remark-gfm";
+import { MarkdownContent } from "@/components/memos/markdown-content";
 import { Icon } from "@/components/ui/icon";
 import { createMemoAction } from "./actions";
 import {
@@ -141,32 +139,7 @@ function MemoFormFields({ formAction, isPending, state }: MemoFormFieldsProps) {
         </div>
         <div className="markdown-preview mt-5 min-h-80 overflow-x-auto">
           {content ? (
-            <ReactMarkdown
-              components={{
-                a: ({ children, href, node, ...props }) => {
-                  void node;
-
-                  if (!href) {
-                    return <span>{children}</span>;
-                  }
-
-                  return (
-                    <a
-                      {...props}
-                      href={href}
-                      rel="noreferrer noopener"
-                      target="_blank"
-                    >
-                      {children}
-                    </a>
-                  );
-                },
-              }}
-              remarkPlugins={[remarkGfm, remarkBreaks]}
-              skipHtml
-            >
-              {content}
-            </ReactMarkdown>
+            <MarkdownContent content={content} />
           ) : (
             <div className="flex min-h-80 items-center justify-center rounded-2xl border border-dashed border-[var(--hairline)] px-6 text-center">
               <p className="max-w-xs text-sm leading-6 text-[var(--muted)]">

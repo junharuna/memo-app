@@ -1,50 +1,14 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Icon, type IconName } from "@/components/ui/icon";
+import { createMemoExcerpt } from "@/lib/memos/excerpt";
+import { formatMemoDate } from "@/lib/memos/format";
+import {
+  type MemoListResult,
+  type MemoRecord,
+  listMemosForCurrentUser,
+} from "@/lib/memos/queries";
 import { getAuthState } from "@/lib/supabase/auth";
-
-type Memo = {
-  title: string;
-  excerpt: string;
-  category: string;
-  categoryColor: string;
-  updatedAt: string;
-  icon: IconName;
-  accent: string;
-  tags: string[];
-};
-
-const memos: Memo[] = [
-  {
-    title: "プロダクトアイデア",
-    excerpt: "日々の小さな気づきを、育てられる場所にする。次のリリースで検討したい体験と…",
-    category: "アイデア",
-    categoryColor: "bg-[#a67cf7]",
-    updatedAt: "12分前",
-    icon: "sparkles",
-    accent: "memo-accent-violet",
-    tags: ["企画", "MVP"],
-  },
-  {
-    title: "デザインシステム",
-    excerpt: "余白、タイポグラフィ、色彩のルール。静かで一貫性のあるインターフェースを目指す。",
-    category: "仕事",
-    categoryColor: "bg-[#5e8bff]",
-    updatedAt: "昨日",
-    icon: "grid",
-    accent: "memo-accent-blue",
-    tags: ["デザイン", "UI"],
-  },
-  {
-    title: "読みたい本リスト",
-    excerpt: "集中力と創造性について。読み終わったら、心に残った一節と考えをここにまとめる。",
-    category: "個人",
-    categoryColor: "bg-[#ff9f56]",
-    updatedAt: "7月28日",
-    icon: "book",
-    accent: "memo-accent-orange",
-    tags: ["読書"],
-  },
-];
 
 const categories = [
   { name: "仕事", count: 10, color: "#5e8bff", tint: "rgba(94, 139, 255, 0.12)" },
@@ -243,60 +207,89 @@ function Overview() {
   );
 }
 
-function MemoCard({ memo }: { memo: Memo }) {
+function MemoCard({ memo }: { memo: MemoRecord }) {
+  const excerpt = createMemoExcerpt(memo.content);
+
   return (
-    <article className="memo-card group">
-      <button className="absolute inset-0 rounded-[20px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500" aria-label={`${memo.title}を開く`} type="button" />
-      <div className={`memo-icon ${memo.accent}`} aria-hidden="true">
-        <Icon name={memo.icon} size={20} />
+    <article className="memo-card group flex h-60 flex-col">
+      <Link
+        aria-label={`${memo.title}を開く`}
+        className="absolute inset-0 z-10 rounded-[20px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+        href={`/memos/${memo.id}`}
+      />
+      <div className="memo-icon memo-accent-blue" aria-hidden="true">
+        <Icon name="fileText" size={20} />
       </div>
-      <button
-        aria-label={`${memo.title}のその他の操作`}
-        className="relative z-10 ml-auto flex size-8 items-center justify-center rounded-full text-[var(--muted-soft)] opacity-100 transition hover:bg-[var(--nav-hover)] hover:text-[var(--ink)] sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
-        type="button"
-      >
-        <Icon name="moreHorizontal" size={18} />
-      </button>
       <div className="relative mt-5">
-        <h3 className="text-[17px] font-semibold tracking-[-0.025em] text-[var(--ink)]">
+        <h3 className="line-clamp-2 break-words text-[17px] font-semibold leading-6 tracking-[-0.025em] text-[var(--ink)]">
           {memo.title}
         </h3>
-        <p className="mt-2 line-clamp-3 min-h-[4.5rem] text-[13px] leading-6 text-[var(--muted)]">
-          {memo.excerpt}
+        <p className="mt-2 line-clamp-2 min-h-12 break-words text-[13px] leading-6 text-[var(--muted)]">
+          {excerpt || "本文はありません。"}
         </p>
       </div>
-      <div className="relative mt-5 flex flex-wrap items-center gap-1.5">
-        {memo.tags.map((tag) => (
-          <span className="rounded-md bg-[var(--chip)] px-2 py-1 text-[10px] font-medium text-[var(--muted)]" key={tag}>
-            #{tag}
-          </span>
-        ))}
-      </div>
-      <footer className="relative mt-5 flex items-center border-t border-[var(--hairline-soft)] pt-4 text-[11px] text-[var(--muted-soft)]">
-        <span className={`mr-2 size-1.5 rounded-full ${memo.categoryColor}`} aria-hidden="true" />
-        <span>{memo.category}</span>
+      <footer className="relative mt-auto flex items-center border-t border-[var(--hairline-soft)] pt-4 text-[11px] text-[var(--muted-soft)]">
+        <span className="mr-2 size-1.5 rounded-full bg-[#5e8bff]" aria-hidden="true" />
+        <span>更新</span>
         <span className="mx-2">·</span>
-        <time>{memo.updatedAt}</time>
+        <time dateTime={memo.updated_at}>{formatMemoDate(memo.updated_at)}</time>
       </footer>
     </article>
   );
 }
 
-function RecentMemos() {
+function MemoListError() {
+  return (
+    <div
+      className="rounded-[20px] border border-red-500/20 bg-red-500/8 p-5 text-red-700 dark:text-red-300"
+      role="alert"
+    >
+      <h3 className="text-base font-semibold">メモを読み込めませんでした</h3>
+      <p className="mt-2 text-sm leading-6">通信状態を確認して、もう一度お試しください。</p>
+      <Link className="secondary-button mt-4" href="/">
+        もう一度試す
+      </Link>
+    </div>
+  );
+}
+
+function EmptyMemoList() {
+  return (
+    <div className="rounded-[20px] border border-dashed border-[var(--hairline)] bg-[var(--surface-raised)] px-6 py-12 text-center">
+      <span className="memo-icon memo-accent-blue" aria-hidden="true">
+        <Icon name="fileText" size={20} />
+      </span>
+      <h3 className="mt-4 text-lg font-semibold tracking-[-0.025em] text-[var(--ink)]">
+        まだメモがありません
+      </h3>
+      <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+        思いついたことを、最初のメモとして残してみましょう。
+      </p>
+      <Link className="primary-button mt-5" href="/memos/new">
+        <Icon name="plus" size={17} />
+        最初のメモを作成
+      </Link>
+    </div>
+  );
+}
+
+function RecentMemos({ result }: { result: Exclude<MemoListResult, { status: "unauthenticated" }> }) {
   return (
     <section className="mt-11" aria-labelledby="recent-title">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-center">
         <h2 id="recent-title" className="section-title">最近のメモ</h2>
-        <button className="text-button" type="button">
-          すべて見る
-          <Icon name="chevronRight" size={15} />
-        </button>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {memos.map((memo) => (
-          <MemoCard memo={memo} key={memo.title} />
-        ))}
-      </div>
+      {result.status === "error" ? (
+        <MemoListError />
+      ) : result.memos.length === 0 ? (
+        <EmptyMemoList />
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {result.memos.map((memo) => (
+            <MemoCard memo={memo} key={memo.id} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -337,12 +330,12 @@ function CategorySummary() {
   );
 }
 
-function MemoDashboard() {
+function MemoDashboard({ memoResult }: { memoResult: Exclude<MemoListResult, { status: "unauthenticated" }> }) {
   return (
     <div className="mx-auto w-full max-w-[1480px] px-4 py-7 sm:px-6 sm:py-9 lg:px-8 lg:py-10 xl:px-10">
       <PageHeading />
       <Overview />
-      <RecentMemos />
+      <RecentMemos result={memoResult} />
       <CategorySummary />
     </div>
   );
@@ -351,5 +344,15 @@ function MemoDashboard() {
 export default async function Home() {
   const { isAuthenticated } = await getAuthState();
 
-  return isAuthenticated ? <MemoDashboard /> : <PublicHome />;
+  if (!isAuthenticated) {
+    return <PublicHome />;
+  }
+
+  const memoResult = await listMemosForCurrentUser();
+
+  if (memoResult.status === "unauthenticated") {
+    redirect("/signin");
+  }
+
+  return <MemoDashboard memoResult={memoResult} />;
 }
