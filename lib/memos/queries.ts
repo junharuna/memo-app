@@ -11,6 +11,10 @@ export type MemoListResult =
   | { status: "unauthenticated" }
   | { status: "error" };
 
+type MemoListOptions = {
+  limit?: number;
+};
+
 export type MemoDetailResult =
   | { status: "success"; memo: MemoRecord }
   | { status: "not_found" }
@@ -35,7 +39,9 @@ async function getAuthorizedClient() {
   return { ownerId, supabase };
 }
 
-export async function listMemosForCurrentUser(): Promise<MemoListResult> {
+export async function listMemosForCurrentUser(
+  options: MemoListOptions = {},
+): Promise<MemoListResult> {
   try {
     const authorization = await getAuthorizedClient();
 
@@ -43,11 +49,15 @@ export async function listMemosForCurrentUser(): Promise<MemoListResult> {
       return { status: "unauthenticated" };
     }
 
-    const { data, error } = await authorization.supabase
+    const query = authorization.supabase
       .from("memos")
       .select(MEMO_COLUMNS)
       .eq("owner_id", authorization.ownerId)
       .order("updated_at", { ascending: false });
+
+    const { data, error } = options.limit
+      ? await query.limit(options.limit)
+      : await query;
 
     if (error) {
       console.error("Memo list query failed", error);

@@ -30,7 +30,7 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-it("現在のユーザーのメモだけを更新日時の降順で取得する", async () => {
+it("現在のユーザーの最近のメモを指定件数だけ更新日時の降順で取得する", async () => {
   const memos = [
     {
       id: "memo-1",
@@ -40,18 +40,32 @@ it("現在のユーザーのメモだけを更新日時の降順で取得する"
       updated_at: "2026-08-09T02:00:00.000Z",
     },
   ];
-  const order = jest.fn().mockResolvedValue({ data: memos, error: null });
+  const limit = jest.fn().mockResolvedValue({ data: memos, error: null });
+  const order = jest.fn(() => ({ limit }));
   const eq = jest.fn(() => ({ order }));
   const select = jest.fn(() => ({ eq }));
   mockFrom.mockReturnValue({ select });
 
-  await expect(listMemosForCurrentUser()).resolves.toEqual({
+  await expect(listMemosForCurrentUser({ limit: 3 })).resolves.toEqual({
     status: "success",
     memos,
   });
   expect(mockGetClaims).toHaveBeenCalledTimes(1);
   expect(mockFrom).toHaveBeenCalledWith("memos");
   expect(eq).toHaveBeenCalledWith("owner_id", "user-123");
+  expect(order).toHaveBeenCalledWith("updated_at", { ascending: false });
+  expect(limit).toHaveBeenCalledWith(3);
+});
+
+it("件数指定がなければ現在のユーザーのメモを全件取得する", async () => {
+  const order = jest.fn().mockResolvedValue({ data: [], error: null });
+  const eq = jest.fn(() => ({ order }));
+  mockFrom.mockReturnValue({ select: jest.fn(() => ({ eq })) });
+
+  await expect(listMemosForCurrentUser()).resolves.toEqual({
+    status: "success",
+    memos: [],
+  });
   expect(order).toHaveBeenCalledWith("updated_at", { ascending: false });
 });
 

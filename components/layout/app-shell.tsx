@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AuthControls } from "@/components/auth/auth-controls";
+import { NavigationLink } from "@/components/layout/navigation-link";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { ToastProvider } from "@/components/ui/toast";
 
@@ -10,14 +11,14 @@ type AppShellProps = {
 };
 
 type NavigationItem = {
+  activePath?: string;
   icon: IconName;
   label: string;
   href: string;
-  active?: boolean;
 };
 
 const navigationItems: NavigationItem[] = [
-  { icon: "inbox", label: "すべてのメモ", href: "/", active: true },
+  { activePath: "/memos", icon: "inbox", label: "すべてのメモ", href: "/memos" },
   { icon: "star", label: "お気に入り", href: "/?view=favorites" },
   { icon: "tag", label: "タグ", href: "/?view=tags" },
   { icon: "archive", label: "アーカイブ", href: "/?view=archive" },
@@ -81,22 +82,7 @@ function Sidebar() {
         <ul className="space-y-1">
           {navigationItems.map((item) => (
             <li key={item.label}>
-              <Link
-                aria-current={item.active ? "page" : undefined}
-                className={`group flex h-10 items-center gap-3 rounded-[10px] px-3 text-sm transition-colors ${
-                  item.active
-                    ? "bg-[var(--nav-active)] font-semibold text-[var(--ink)]"
-                    : "font-medium text-[var(--muted)] hover:bg-[var(--nav-hover)] hover:text-[var(--ink)]"
-                }`}
-                href={item.href}
-              >
-                <Icon
-                  className={item.active ? "text-blue-600" : "text-[var(--muted-soft)] group-hover:text-[var(--ink)]"}
-                  name={item.icon}
-                  size={18}
-                />
-                <span>{item.label}</span>
-              </Link>
+              <NavigationLink {...item} variant="desktop" />
             </li>
           ))}
         </ul>
@@ -232,16 +218,7 @@ function MobileNavigation() {
       <ul className="grid grid-cols-4">
         {mobileItems.map((item) => (
           <li key={item.label}>
-            <Link
-              aria-current={item.active ? "page" : undefined}
-              className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-2xl text-[10px] font-medium ${
-                item.active ? "bg-[var(--surface-raised)] text-blue-600 shadow-sm" : "text-[var(--muted)]"
-              }`}
-              href={item.href}
-            >
-              <Icon name={item.icon} size={18} />
-              <span>{item.label}</span>
-            </Link>
+            <NavigationLink {...item} variant="mobile" />
           </li>
         ))}
       </ul>

@@ -45,11 +45,28 @@ const storedMemos = [
     created_at: "2026-08-08T01:00:00.000Z",
     updated_at: "2026-08-08T02:00:00.000Z",
   },
+  {
+    id: "33333333-3333-4333-8333-333333333333",
+    title: "3件目のメモ",
+    content: "3件目の本文",
+    created_at: "2026-08-07T01:00:00.000Z",
+    updated_at: "2026-08-07T02:00:00.000Z",
+  },
+  {
+    id: "44444444-4444-4444-8444-444444444444",
+    title: "4件目のメモ",
+    content: "ホームには表示されない本文",
+    created_at: "2026-08-06T01:00:00.000Z",
+    updated_at: "2026-08-06T02:00:00.000Z",
+  },
 ];
 
 async function renderHome(isAuthenticated = false) {
   mockGetAuthState.mockResolvedValue({ isAuthenticated });
-  mockListMemos.mockResolvedValue({ status: "success", memos: storedMemos });
+  mockListMemos.mockResolvedValue({
+    status: "success",
+    memos: storedMemos.slice(0, 3),
+  });
   const page = await Home();
 
   return render(
@@ -84,7 +101,7 @@ describe("Home", () => {
   it("ログイン済みならメモダッシュボードと主要操作を表示する", async () => {
     await renderHome(true);
 
-    expect(screen.getByRole("heading", { level: 1, name: "すべてのメモ" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "ホーム" })).toBeInTheDocument();
     expect(screen.getByRole("searchbox", { name: "メモを検索" })).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "新しいメモを作成" })).not.toHaveLength(0);
     expect(screen.getByRole("navigation", { name: "メインナビゲーション" })).toBeInTheDocument();
@@ -93,12 +110,18 @@ describe("Home", () => {
     expect(screen.queryByRole("link", { name: "サインイン" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "サインアップ" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: "最近のメモ" })).toBeInTheDocument();
-    expect(screen.getAllByRole("article")).toHaveLength(2);
+    expect(screen.getAllByRole("article")).toHaveLength(3);
+    expect(screen.getByRole("link", { name: "すべてのメモを表示" })).toHaveAttribute(
+      "href",
+      "/memos",
+    );
     expect(screen.getByRole("link", { name: "Supabaseのメモを開く" })).toHaveAttribute(
       "href",
       "/memos/11111111-1111-4111-8111-111111111111",
     );
     expect(screen.getByText("2件目のメモ")).toBeInTheDocument();
+    expect(screen.getByText("3件目のメモ")).toBeInTheDocument();
+    expect(screen.queryByText("4件目のメモ")).not.toBeInTheDocument();
     expect(screen.getByText("本文 保存済みの内容")).toBeInTheDocument();
     expect(screen.getByText("チェックリスト 確認する")).toBeInTheDocument();
     expect(document.querySelector(".markdown-preview")).not.toBeInTheDocument();
@@ -106,7 +129,7 @@ describe("Home", () => {
     expect(document.querySelector("article ul")).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
     expect(screen.queryByText("プロダクトアイデア")).not.toBeInTheDocument();
-    expect(mockListMemos).toHaveBeenCalledTimes(1);
+    expect(mockListMemos).toHaveBeenCalledWith({ limit: 3 });
   });
 
   it("保存済みメモがない場合は作成導線付きの空状態を表示する", async () => {

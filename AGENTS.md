@@ -38,7 +38,7 @@ TagNote is intended to become a personal memo application for capturing Markdown
 ### Implemented Memo Scope
 
 - Creation: `/memos/new` provides an authenticated title and Markdown editor, live CommonMark/GFM preview, server-side validation, explicit success and failure feedback, and insertion into Supabase with the authenticated user as owner.
-- Listing: `/` loads only the current user's memos from Supabase in descending `updated_at` order. Cards link to their detail routes, keep a uniform height, and show a plain-text excerpt without rendering Markdown. Empty and query-error states are implemented.
+- Listing: `/` loads the current user's three most recently updated memos from Supabase, and `/memos` loads the complete list in descending `updated_at` order. A “show all” link connects the two views. Cards link to their detail routes, keep a uniform height, and show a plain-text excerpt without rendering Markdown. Empty and query-error states are implemented.
 - Detail display: `/memos/[id]` validates the memo ID, loads only a memo owned by the current user, and renders its Markdown with the shared safe renderer. Missing or inaccessible memos return not found, and query failures show a retry path.
 - Markdown safety: Markdown source remains canonical, CommonMark/GFM and soft line breaks are supported, raw HTML is skipped, and external links use safe `rel` attributes.
 - Database security: the `memos` table, ownership constraints, validation constraints, indexes, and owner-scoped RLS policies for INSERT and SELECT are managed through versioned Supabase migrations.

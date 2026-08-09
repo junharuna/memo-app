@@ -1,0 +1,104 @@
+- generic [active] [ref=f36e1]:
+  - generic [ref=f36e2]:
+    - link "メインコンテンツへ移動" [ref=f36e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - complementary [ref=f36e4]:
+      - link "TagNote ホーム" [ref=f36e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f36e11]: TagNote
+      - link "新しいメモを作成" [ref=f36e13] [cursor=pointer]:
+        - /url: /memos/new
+        - generic [ref=f36e16]: 新しいメモ
+      - navigation "メインナビゲーション" [ref=f36e17]:
+        - list [ref=f36e18]:
+          - listitem [ref=f36e19]:
+            - link "すべてのメモ" [ref=f36e20] [cursor=pointer]:
+              - /url: /memos
+          - listitem [ref=f36e25]:
+            - link "お気に入り" [ref=f36e26] [cursor=pointer]:
+              - /url: /?view=favorites
+          - listitem [ref=f36e30]:
+            - link "タグ" [ref=f36e31] [cursor=pointer]:
+              - /url: /?view=tags
+          - listitem [ref=f36e36]:
+            - link "アーカイブ" [ref=f36e37] [cursor=pointer]:
+              - /url: /?view=archive
+          - listitem [ref=f36e42]:
+            - link "ゴミ箱" [ref=f36e43] [cursor=pointer]:
+              - /url: /?view=trash
+      - generic [ref=f36e47]:
+        - generic [ref=f36e48]:
+          - paragraph [ref=f36e49]: カテゴリ
+          - button "カテゴリを追加" [ref=f36e50] [cursor=pointer]
+        - list [ref=f36e53]:
+          - listitem [ref=f36e54]:
+            - link "仕事" [ref=f36e55] [cursor=pointer]:
+              - /url: /#category-仕事
+          - listitem [ref=f36e57]:
+            - link "個人" [ref=f36e58] [cursor=pointer]:
+              - /url: /#category-個人
+          - listitem [ref=f36e60]:
+            - link "アイデア" [ref=f36e61] [cursor=pointer]:
+              - /url: /#category-アイデア
+      - generic [ref=f36e65]:
+        - generic [ref=f36e66]: H
+        - generic [ref=f36e67]:
+          - generic [ref=f36e68]: Haruna
+          - generic [ref=f36e69]: Personal plan
+        - button "アカウントメニューを開く" [ref=f36e70] [cursor=pointer]
+    - generic [ref=f36e72]:
+      - banner [ref=f36e73]:
+        - generic [ref=f36e74]:
+          - generic [ref=f36e75]:
+            - searchbox "メモを検索" [ref=f36e79]
+            - generic [ref=f36e80]: ⌘ K
+          - generic [ref=f36e81]:
+            - generic [ref=f36e82]:
+              - button "通知を見る" [ref=f36e83] [cursor=pointer]
+              - button "設定を開く" [ref=f36e88] [cursor=pointer]
+            - button "サインアウト" [ref=f36e93] [cursor=pointer]
+      - main [ref=f36e98]:
+        - generic [ref=f36e233]:
+          - generic [ref=f36e234]:
+            - generic [ref=f36e235]:
+              - paragraph [ref=f36e236]: YOUR LIBRARY
+              - heading "すべてのメモ" [level=1] [ref=f36e237]
+              - paragraph [ref=f36e238]: 保存したメモを、更新日時の新しい順に表示しています。
+            - link "新しいメモを作成" [ref=f36e239] [cursor=pointer]:
+              - /url: /memos/new
+              - text: 新しいメモ
+          - region [ref=f36e242]:
+            - heading "メモ一覧" [level=2] [ref=f36e243]
+            - generic [ref=f36e244]:
+              - article [ref=f36e245]:
+                - link "メモ2を開く" [ref=f36e246] [cursor=pointer]:
+                  - /url: /memos/76d03a51-d1d6-418a-a39b-57169f5c1faf
+                - generic [ref=f36e251]:
+                  - heading "メモ2" [level=3] [ref=f36e252]
+                  - paragraph [ref=f36e253]: 引用 インラインコード
+                - generic [ref=f36e254]:
+                  - generic [ref=f36e256]: 更新
+                  - generic [ref=f36e257]: ·
+                  - time [ref=f36e258]: 2026/08/09 23:29
+              - article [ref=f36e259]:
+                - link "メモ1を開く" [ref=f36e260] [cursor=pointer]:
+                  - /url: /memos/8e184581-0edd-411d-9122-3a589638f918
+                - generic [ref=f36e265]:
+                  - heading "メモ1" [level=3] [ref=f36e266]
+                  - paragraph [ref=f36e267]: 見出し a b c
+                - generic [ref=f36e268]:
+                  - generic [ref=f36e270]: 更新
+                  - generic [ref=f36e271]: ·
+                  - time [ref=f36e272]: 2026/08/09 23:28
+              - article [ref=f36e273]:
+                - link "テストタイトルを開く" [ref=f36e274] [cursor=pointer]:
+                  - /url: /memos/bc11b2a3-ba16-446a-b6d2-a357fd848179
+                - generic [ref=f36e279]:
+                  - heading "テストタイトル" [level=3] [ref=f36e280]
+                  - paragraph [ref=f36e281]: H1 見出し H2 見出し H3見出し a b c
+                - generic [ref=f36e282]:
+                  - generic [ref=f36e284]: 更新
+                  - generic [ref=f36e285]: ·
+                  - time [ref=f36e286]: 2026/08/09 22:53
+  - button "Open Next.js Dev Tools" [ref=f36e228] [cursor=pointer]
+  - alert [ref=f36e232]: すべてのメモ
