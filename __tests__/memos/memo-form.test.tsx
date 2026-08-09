@@ -37,6 +37,108 @@ describe("MemoForm", () => {
     expect(preview.querySelector("table")).toHaveTextContent("項目");
   });
 
+  it("CommonMarkとGFMの対応範囲とHTMLを実行しないことを案内する", () => {
+    render(<MemoForm />);
+
+    expect(
+      screen.getByText(
+        "CommonMarkとGitHub Flavored Markdownに対応し、Enterで改行できます。安全のためHTMLは実行されません。",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("Enterによる単一改行をプレビューでも改行する", () => {
+    render(<MemoForm />);
+
+    fireEvent.change(screen.getByRole("textbox", { name: "本文" }), {
+      target: { value: "1行目\n2行目" },
+    });
+
+    const preview = screen.getByRole("region", { name: "Markdownプレビュー" });
+    const paragraph = preview.querySelector(".markdown-preview p");
+    expect(paragraph).toHaveTextContent("1行目");
+    expect(paragraph).toHaveTextContent("2行目");
+    expect(paragraph?.querySelector("br")).toBeInTheDocument();
+  });
+
+  it("CommonMarkとGFMの主要なブロック・インライン記法をプレビューする", () => {
+    render(<MemoForm />);
+
+    fireEvent.change(screen.getByRole("textbox", { name: "本文" }), {
+      target: {
+        value: [
+          "# 見出し1",
+          "## 見出し2",
+          "### 見出し3",
+          "#### 見出し4",
+          "##### 見出し5",
+          "###### 見出し6",
+          "",
+          "*斜体* **太字** ~~取り消し線~~ `インラインコード`  ",
+          "改行後",
+          "",
+          "> 引用",
+          ">",
+          "> > 入れ子の引用",
+          "",
+          "- 箇条書き",
+          "  - 入れ子",
+          "",
+          "1. 番号付き",
+          "2. 2番目",
+          "",
+          "- [x] 完了",
+          "- [ ] 未完了",
+          "",
+          "[リンク](https://example.com)",
+          "",
+          "![画像の代替テキスト](/favicon.ico)",
+          "",
+          "---",
+          "",
+          "| 左 | 右 |",
+          "| --- | ---: |",
+          "| A | B |",
+          "",
+          "```ts",
+          'const message = "code";',
+          "```",
+          "",
+          "脚注[^1]",
+          "",
+          "[^1]: 脚注の内容",
+        ].join("\n"),
+      },
+    });
+
+    const preview = screen.getByRole("region", { name: "Markdownプレビュー" });
+    for (let level = 1; level <= 6; level += 1) {
+      expect(preview.querySelector(`.markdown-preview h${level}`)).toHaveTextContent(
+        `見出し${level}`,
+      );
+    }
+    expect(preview.querySelector("em")).toHaveTextContent("斜体");
+    expect(preview.querySelector("strong")).toHaveTextContent("太字");
+    expect(preview.querySelector("del")).toHaveTextContent("取り消し線");
+    expect(preview.querySelector("blockquote blockquote")).toHaveTextContent("入れ子の引用");
+    expect(preview.querySelector("ul ul")).toHaveTextContent("入れ子");
+    expect(preview.querySelector("ol")).toHaveTextContent("番号付き");
+    expect(preview.querySelectorAll('input[type="checkbox"]')).toHaveLength(2);
+    expect(preview.querySelector('a[href="https://example.com"]')).toHaveAttribute(
+      "target",
+      "_blank",
+    );
+    expect(preview.querySelector('img[src="/favicon.ico"]')).toHaveAttribute(
+      "alt",
+      "画像の代替テキスト",
+    );
+    expect(preview.querySelector("hr")).toBeInTheDocument();
+    expect(preview.querySelector("table")).toHaveTextContent("A");
+    expect(preview.querySelector("pre code")).toHaveTextContent('const message = "code";');
+    expect(preview.querySelector("br")).toBeInTheDocument();
+    expect(preview.querySelector("section[data-footnotes]")).toHaveTextContent("脚注の内容");
+  });
+
   it("生HTMLと危険なURLをプレビューへ出力しない", () => {
     render(<MemoForm />);
 

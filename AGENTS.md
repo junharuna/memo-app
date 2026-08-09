@@ -65,3 +65,9 @@ Use atomic Conventional Commits with Japanese descriptions, such as `feat: ãƒ¡ãƒ
 ## Agent Notes
 
 Use Japanese for user-facing chat. Before any UI-affecting change, follow the mandatory design-system reading and validation rules above. Before framework changes, read the relevant guide under `node_modules/next/dist/docs/`. Before Supabase changes, consult current official documentation and inspect the connected project through MCP.
+
+### Authenticated Browser Verification with Playwright MCP
+
+Use the persistent Playwright MCP browser session for checks that require a signed-in user. First navigate to the real protected route under test. If it remains on that route, reuse the existing authenticated session. If it redirects to `/signin`, navigate to the sign-in page and stop; ask the user to complete the magic-link flow in the Playwright browser. Do not attempt to read the user's email, retrieve the magic link, or continue past the sign-in page until the user explicitly confirms that authentication is complete.
+
+After confirmation, revisit the protected route and verify that it no longer redirects before continuing the requested checks. Preserve the session for later verification: do not sign out, clear cookies or browser storage, close the browser, or reset its context unless the user explicitly requests it. Use real application routes and authorization boundaries; do not add temporary authentication bypasses or public preview routes for browser verification. Do not create or mutate application data unless the requested verification requires it and the user has authorized that scope.

@@ -1,0 +1,91 @@
+- generic [active] [ref=f14e1]:
+  - generic [ref=f14e2]:
+    - link "メインコンテンツへ移動" [ref=f14e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - complementary [ref=f14e4]:
+      - link "TagNote ホーム" [ref=f14e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f14e11]: TagNote
+      - link "新しいメモを作成" [ref=f14e13] [cursor=pointer]:
+        - /url: /memos/new
+        - generic [ref=f14e16]: 新しいメモ
+      - navigation "メインナビゲーション" [ref=f14e17]:
+        - list [ref=f14e18]:
+          - listitem [ref=f14e19]:
+            - link "すべてのメモ 24" [ref=f14e20] [cursor=pointer]:
+              - /url: /
+              - generic [ref=f14e24]: すべてのメモ
+              - generic [ref=f14e25]: "24"
+          - listitem [ref=f14e26]:
+            - link "お気に入り 6" [ref=f14e27] [cursor=pointer]:
+              - /url: /?view=favorites
+              - generic [ref=f14e30]: お気に入り
+              - generic [ref=f14e31]: "6"
+          - listitem [ref=f14e32]:
+            - link "タグ" [ref=f14e33] [cursor=pointer]:
+              - /url: /?view=tags
+          - listitem [ref=f14e38]:
+            - link "アーカイブ" [ref=f14e39] [cursor=pointer]:
+              - /url: /?view=archive
+          - listitem [ref=f14e44]:
+            - link "ゴミ箱" [ref=f14e45] [cursor=pointer]:
+              - /url: /?view=trash
+      - generic [ref=f14e49]:
+        - generic [ref=f14e50]:
+          - paragraph [ref=f14e51]: カテゴリ
+          - button "カテゴリを追加" [ref=f14e52] [cursor=pointer]
+        - list [ref=f14e55]:
+          - listitem [ref=f14e56]:
+            - link "仕事" [ref=f14e57] [cursor=pointer]:
+              - /url: /#category-仕事
+          - listitem [ref=f14e59]:
+            - link "個人" [ref=f14e60] [cursor=pointer]:
+              - /url: /#category-個人
+          - listitem [ref=f14e62]:
+            - link "アイデア" [ref=f14e63] [cursor=pointer]:
+              - /url: /#category-アイデア
+      - generic [ref=f14e67]:
+        - generic [ref=f14e68]: H
+        - generic [ref=f14e69]:
+          - generic [ref=f14e70]: Haruna
+          - generic [ref=f14e71]: Personal plan
+        - button "アカウントメニューを開く" [ref=f14e72] [cursor=pointer]
+    - generic [ref=f14e74]:
+      - banner [ref=f14e75]:
+        - generic [ref=f14e76]:
+          - generic [ref=f14e77]:
+            - searchbox "メモを検索" [ref=f14e81]
+            - generic [ref=f14e82]: ⌘ K
+          - generic [ref=f14e83]:
+            - generic [ref=f14e84]:
+              - button "通知を見る" [ref=f14e85] [cursor=pointer]
+              - button "設定を開く" [ref=f14e90] [cursor=pointer]
+            - button "サインアウト" [ref=f14e95] [cursor=pointer]
+      - main [ref=f14e100]:
+        - generic [ref=f14e101]:
+          - generic [ref=f14e102]:
+            - paragraph [ref=f14e103]: NEW MEMO
+            - heading "新しいメモ" [level=1] [ref=f14e104]
+            - paragraph [ref=f14e105]: Markdownで書きながら、右側のプレビューで仕上がりを確認できます。
+          - form "メモを作成" [ref=f14e106]:
+            - region [ref=f14e107]:
+              - generic [ref=f14e108]:
+                - heading "メモを書く" [level=2] [ref=f14e109]
+                - generic [ref=f14e110]: Markdown
+              - generic [ref=f14e111]:
+                - text: タイトル
+                - textbox "タイトル" [ref=f14e112]:
+                  - /placeholder: メモのタイトル
+                - paragraph [ref=f14e113]: 必須・200文字以内
+              - generic [ref=f14e114]:
+                - text: 本文
+                - textbox "本文" [ref=f14e115]:
+                  - /placeholder: "# 見出し\\n\\nMarkdownで本文を書けます。"
+                - generic [ref=f14e116]:
+                  - paragraph [ref=f14e117]: CommonMarkとGitHub Flavored Markdownに対応し、Enterで改行できます。安全のためHTMLは実行されません。
+                  - paragraph [ref=f14e118]: 0 / 100,000
+              - button "メモを保存" [ref=f14e119] [cursor=pointer]
+            - region "Markdownプレビュー" [ref=f14e122]:
+              - heading "プレビュー" [level=2] [ref=f14e124]
+              - paragraph [ref=f14e127]: 本文を入力すると、ここにプレビューが表示されます。
+  - button "Open Next.js Dev Tools" [ref=f14e133] [cursor=pointer]

@@ -401,7 +401,9 @@ a {
 .markdown-preview h1,
 .markdown-preview h2,
 .markdown-preview h3,
-.markdown-preview h4 {
+.markdown-preview h4,
+.markdown-preview h5,
+.markdown-preview h6 {
   margin: 1.5em 0 0.6em;
   color: var(--ink);
   font-weight: 650;
@@ -421,6 +423,20 @@ a {
 
 .markdown-preview h3 {
   font-size: 1.1rem;
+}
+
+.markdown-preview h4 {
+  font-size: 1rem;
+}
+
+.markdown-preview h5 {
+  font-size: 0.9rem;
+}
+
+.markdown-preview h6 {
+  color: var(--muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.01em;
 }
 
 .markdown-preview p,
@@ -449,6 +465,11 @@ a {
   margin-top: 0.25em;
 }
 
+.markdown-preview li > ul,
+.markdown-preview li > ol {
+  margin: 0.35em 0;
+}
+
 .markdown-preview .contains-task-list {
   padding-left: 0;
   list-style: none;
@@ -457,6 +478,7 @@ a {
 .markdown-preview input[type="checkbox"] {
   margin-right: 0.45em;
   accent-color: #2563eb;
+  vertical-align: -0.1em;
 }
 
 .markdown-preview a {
@@ -468,6 +490,15 @@ a {
 .markdown-preview strong {
   color: var(--ink);
   font-weight: 650;
+}
+
+.markdown-preview em {
+  color: var(--ink);
+}
+
+.markdown-preview del {
+  color: var(--muted-soft);
+  text-decoration-thickness: 1px;
 }
 
 .markdown-preview blockquote {
@@ -498,6 +529,16 @@ a {
   padding: 0;
 }
 
+.markdown-preview img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1rem 0;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--sidebar);
+}
+
 .markdown-preview table {
   width: 100%;
   min-width: 28rem;
@@ -521,6 +562,34 @@ a {
   margin: 1.5rem 0;
   border: 0;
   border-top: 1px solid var(--hairline);
+}
+
+.markdown-preview section[data-footnotes] {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--hairline);
+  padding-top: 0.75rem;
+  font-size: 0.9em;
+}
+
+.markdown-preview [data-footnote-ref] {
+  margin-left: 0.1em;
+  font-size: 0.75em;
+  line-height: 0;
+}
+
+.markdown-preview [data-footnote-backref] {
+  margin-left: 0.35em;
+  text-decoration: none;
+}
+
+.markdown-preview .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
 }
 
 @media (max-width: 639px) {

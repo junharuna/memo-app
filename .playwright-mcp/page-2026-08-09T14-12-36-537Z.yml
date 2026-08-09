@@ -1,0 +1,57 @@
+- generic [active] [ref=f11e1]:
+  - generic [ref=f11e2]:
+    - link "メインコンテンツへ移動" [ref=f11e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=f11e4]:
+      - banner [ref=f11e5]:
+        - generic [ref=f11e6]:
+          - link "TagNote ホーム" [ref=f11e8] [cursor=pointer]:
+            - /url: /
+            - generic [ref=f11e13]: TagNote
+          - searchbox "メモを検索" [ref=f11e18]
+          - generic [ref=f11e19]:
+            - button "サインアウト" [ref=f11e21] [cursor=pointer]
+            - link "新しいメモを作成" [ref=f11e26] [cursor=pointer]:
+              - /url: /memos/new
+      - main [ref=f11e29]:
+        - generic [ref=f11e30]:
+          - generic [ref=f11e31]:
+            - paragraph [ref=f11e32]: NEW MEMO
+            - heading "新しいメモ" [level=1] [ref=f11e33]
+            - paragraph [ref=f11e34]: Markdownで書きながら、右側のプレビューで仕上がりを確認できます。
+          - form "メモを作成" [ref=f11e35]:
+            - region [ref=f11e36]:
+              - generic [ref=f11e37]:
+                - heading "メモを書く" [level=2] [ref=f11e38]
+                - generic [ref=f11e39]: Markdown
+              - generic [ref=f11e40]:
+                - text: タイトル
+                - textbox "タイトル" [ref=f11e41]:
+                  - /placeholder: メモのタイトル
+                - paragraph [ref=f11e42]: 必須・200文字以内
+              - generic [ref=f11e43]:
+                - text: 本文
+                - textbox "本文" [ref=f11e44]:
+                  - /placeholder: "# 見出し\\n\\nMarkdownで本文を書けます。"
+                - generic [ref=f11e45]:
+                  - paragraph [ref=f11e46]: GitHub Flavored Markdownに対応しています。
+                  - paragraph [ref=f11e47]: 0 / 100,000
+              - button "メモを保存" [ref=f11e48] [cursor=pointer]
+            - region "Markdownプレビュー" [ref=f11e51]:
+              - heading "プレビュー" [level=2] [ref=f11e53]
+              - paragraph [ref=f11e56]: 本文を入力すると、ここにプレビューが表示されます。
+    - navigation "モバイルナビゲーション" [ref=f11e57]:
+      - list [ref=f11e58]:
+        - listitem [ref=f11e59]:
+          - link "すべてのメモ" [ref=f11e60] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f11e65]:
+          - link "お気に入り" [ref=f11e66] [cursor=pointer]:
+            - /url: /?view=favorites
+        - listitem [ref=f11e70]:
+          - link "カテゴリ" [ref=f11e71] [cursor=pointer]:
+            - /url: /#categories
+        - listitem [ref=f11e75]:
+          - link "設定" [ref=f11e76] [cursor=pointer]:
+            - /url: /?view=settings
+  - button "Open Next.js Dev Tools" [ref=f11e86] [cursor=pointer]

@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import { Icon } from "@/components/ui/icon";
 import { createMemoAction } from "./actions";
@@ -94,7 +95,9 @@ function MemoFormFields({ formAction, isPending, state }: MemoFormFieldsProps) {
             value={content}
           />
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs leading-5 text-[var(--muted)]">
-            <p id="memo-content-help">GitHub Flavored Markdownに対応しています。</p>
+            <p id="memo-content-help">
+              CommonMarkとGitHub Flavored Markdownに対応し、Enterで改行できます。安全のためHTMLは実行されません。
+            </p>
             <p aria-live="polite" className="tabular-nums">
               {Array.from(content).length.toLocaleString("ja-JP")} / {CONTENT_MAX_LENGTH.toLocaleString("ja-JP")}
             </p>
@@ -159,7 +162,7 @@ function MemoFormFields({ formAction, isPending, state }: MemoFormFieldsProps) {
                   );
                 },
               }}
-              remarkPlugins={[remarkGfm]}
+              remarkPlugins={[remarkGfm, remarkBreaks]}
               skipHtml
             >
               {content}

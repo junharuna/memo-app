@@ -1,0 +1,32 @@
+- generic [active] [ref=f7e1]:
+  - generic [ref=f7e2]:
+    - link "メインコンテンツへ移動" [ref=f7e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f7e4]:
+      - generic [ref=f7e5]:
+        - link "TagNote ホーム" [ref=f7e6] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f7e11]: TagNote
+        - generic [ref=f7e12]:
+          - link "サインイン" [ref=f7e13] [cursor=pointer]:
+            - /url: /signin
+          - link "サインアップ" [ref=f7e17] [cursor=pointer]:
+            - /url: /signup
+    - main [ref=f7e22]:
+      - region [ref=f7e24]:
+        - paragraph [ref=f7e25]: WELCOME TO TAGNOTE
+        - heading "サインイン" [level=1] [ref=f7e26]
+        - paragraph [ref=f7e27]: 登録済みのメールアドレスへ届くリンクから、安全にサインインできます。
+        - generic [ref=f7e28]:
+          - generic [ref=f7e29]:
+            - text: メールアドレス
+            - textbox "メールアドレス" [ref=f7e30]:
+              - /placeholder: you@example.com
+            - paragraph [ref=f7e31]: 登録済みのアドレスへ、サインイン用のリンクを送ります。
+          - button "サインインメールを送信" [ref=f7e32] [cursor=pointer]
+        - generic [ref=f7e33]:
+          - text: はじめてご利用ですか？
+          - link "アカウントを作成" [ref=f7e34] [cursor=pointer]:
+            - /url: /signup
+  - button "Open Next.js Dev Tools" [ref=f7e40] [cursor=pointer]
+  - alert [ref=f7e44]
