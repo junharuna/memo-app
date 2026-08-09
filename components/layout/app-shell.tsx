@@ -158,7 +158,7 @@ function Sidebar() {
   );
 }
 
-function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
+function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--hairline)] bg-[color-mix(in_srgb,var(--surface)_82%,transparent)] backdrop-blur-2xl">
       <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:h-20 lg:px-8 xl:px-10">
@@ -198,12 +198,24 @@ function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
             </button>
           </div>
           <AuthControls
-            initialIsAuthenticated={isAuthenticated}
-            key={String(isAuthenticated)}
+            initialIsAuthenticated
           />
           <div className="sm:hidden">
             <NewMemoButton compact />
           </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function PublicHeader() {
+  return (
+    <header className="sticky top-0 z-30 border-b border-[var(--hairline)] bg-[color-mix(in_srgb,var(--surface)_82%,transparent)] backdrop-blur-2xl">
+      <div className="mx-auto flex h-16 w-full max-w-[1480px] items-center gap-3 px-4 sm:px-6 lg:h-20 lg:px-8 xl:px-10">
+        <Brand />
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <AuthControls initialIsAuthenticated={false} />
         </div>
       </div>
     </header>
@@ -244,6 +256,20 @@ function MobileNavigation() {
 }
 
 export function AppShell({ children, isAuthenticated = false }: AppShellProps) {
+  if (!isAuthenticated) {
+    return (
+      <ToastProvider>
+        <div className="min-h-dvh bg-[var(--surface)]">
+          <a className="skip-link" href="#main-content">
+            メインコンテンツへ移動
+          </a>
+          <PublicHeader />
+          <main id="main-content">{children}</main>
+        </div>
+      </ToastProvider>
+    );
+  }
+
   return (
     <ToastProvider>
       <div className="flex min-h-dvh bg-[var(--surface)]">
@@ -252,7 +278,7 @@ export function AppShell({ children, isAuthenticated = false }: AppShellProps) {
         </a>
         <Sidebar />
         <div className="min-w-0 flex-1">
-          <Header isAuthenticated={isAuthenticated} />
+          <Header />
           <main id="main-content" className="pb-24 lg:pb-0">
             {children}
           </main>

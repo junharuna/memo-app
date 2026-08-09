@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { Icon, type IconName } from "@/components/ui/icon";
+import { getAuthState } from "@/lib/supabase/auth";
 
 type Memo = {
   title: string;
@@ -49,6 +51,125 @@ const categories = [
   { name: "個人", count: 8, color: "#ff9f56", tint: "rgba(255, 159, 86, 0.12)" },
   { name: "アイデア", count: 6, color: "#a67cf7", tint: "rgba(166, 124, 247, 0.12)" },
 ];
+
+const publicFeatures: Array<{
+  description: string;
+  icon: IconName;
+  title: string;
+}> = [
+  {
+    title: "Markdownで書く",
+    description: "思いついた瞬間に、書式を気にしすぎず軽やかに記録できます。",
+    icon: "fileText",
+  },
+  {
+    title: "タグで整える",
+    description: "カテゴリとタグを使って、増えていくメモを自分らしく整理できます。",
+    icon: "tag",
+  },
+  {
+    title: "すぐに見つける",
+    description: "検索や絞り込みから、必要な言葉やアイデアへ素早く戻れます。",
+    icon: "search",
+  },
+];
+
+function PublicHome() {
+  return (
+    <div className="mx-auto w-full max-w-[1480px] px-4 pb-16 pt-10 sm:px-6 sm:pb-20 sm:pt-16 lg:px-8 lg:pb-24 lg:pt-20 xl:px-10">
+      <section className="relative overflow-hidden rounded-[26px] border border-[var(--hairline)] bg-[var(--surface-raised)] px-5 py-12 shadow-[0_2px_3px_rgba(20,24,31,0.02),0_20px_50px_rgba(20,24,31,0.04)] sm:px-10 sm:py-16 lg:px-16 lg:py-20">
+        <div className="relative z-10 max-w-3xl">
+          <p className="eyebrow">YOUR NOTES, IN ORDER</p>
+          <h1 className="mt-4 text-[clamp(2.5rem,8vw,5.5rem)] font-semibold leading-[0.96] tracking-[-0.07em] text-[var(--ink)]">
+            考えを残して、
+            <br />
+            タグですぐ見つける。
+          </h1>
+          <p className="mt-6 max-w-2xl text-[15px] leading-7 text-[var(--muted)] sm:text-[17px] sm:leading-8">
+            TagNoteは、Markdownメモをカテゴリとタグで整理できる、シンプルなノートアプリです。
+            書き留めたアイデアを、必要なときに迷わず取り出せます。
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Link className="primary-button h-11 px-5" href="/signup">
+              <Icon name="userPlus" size={18} />
+              アカウントを作成
+            </Link>
+            <Link className="secondary-button h-11 px-5" href="/signin">
+              <Icon name="user" size={18} />
+              サインイン
+            </Link>
+          </div>
+          <p className="mt-4 text-xs leading-5 text-[var(--muted-soft)]">
+            メモの作成・閲覧・検索にはサインインが必要です。
+          </p>
+        </div>
+
+        <div className="pointer-events-none absolute -right-20 -top-24 size-80 rounded-full bg-blue-500/10 blur-3xl" aria-hidden="true" />
+        <div className="pointer-events-none absolute -bottom-32 right-[18%] size-72 rounded-full bg-violet-500/10 blur-3xl" aria-hidden="true" />
+      </section>
+
+      <section className="mt-14 sm:mt-20" aria-labelledby="features-title">
+        <div className="max-w-2xl">
+          <p className="eyebrow">WHAT YOU CAN DO</p>
+          <h2
+            className="mt-3 text-[clamp(1.75rem,5vw,2.75rem)] font-semibold leading-tight tracking-[-0.055em] text-[var(--ink)]"
+            id="features-title"
+          >
+            書くことに集中し、あとから整える。
+          </h2>
+          <p className="mt-4 text-sm leading-7 text-[var(--muted)] sm:text-[15px]">
+            記録、整理、発見までをひとつの場所で。日々の小さな気づきから、育てたいアイデアまで扱えます。
+          </p>
+        </div>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {publicFeatures.map((feature, index) => (
+            <div
+              className="rounded-[20px] border border-[var(--hairline)] bg-[var(--surface-raised)] p-5 shadow-[0_2px_3px_rgba(20,24,31,0.02),0_12px_30px_rgba(20,24,31,0.025)] sm:p-6"
+              key={feature.title}
+            >
+              <span
+                className={`memo-icon ${index === 0 ? "memo-accent-blue" : index === 1 ? "memo-accent-violet" : "memo-accent-orange"}`}
+                aria-hidden="true"
+              >
+                <Icon name={feature.icon} size={20} />
+              </span>
+              <h3 className="mt-5 text-[17px] font-semibold tracking-[-0.025em] text-[var(--ink)]">
+                {feature.title}
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                {feature.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section
+        aria-labelledby="start-title"
+        className="mt-14 flex flex-col gap-6 rounded-[24px] border border-[var(--hairline)] bg-[var(--sidebar)] p-6 sm:mt-20 sm:flex-row sm:items-center sm:justify-between sm:p-8"
+      >
+        <div>
+          <h2 className="text-2xl font-semibold tracking-[-0.045em] text-[var(--ink)]" id="start-title">
+            あなたのメモを、ひとつの場所へ。
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+            メールアドレスだけで、すぐに始められます。
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
+          <Link className="secondary-button h-11 px-5" href="/signin">
+            サインイン
+          </Link>
+          <Link className="primary-button h-11 px-5" href="/signup">
+            アカウントを作成
+            <Icon name="chevronRight" size={17} />
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+}
 
 function PageHeading() {
   return (
@@ -216,7 +337,7 @@ function CategorySummary() {
   );
 }
 
-export default function Home() {
+function MemoDashboard() {
   return (
     <div className="mx-auto w-full max-w-[1480px] px-4 py-7 sm:px-6 sm:py-9 lg:px-8 lg:py-10 xl:px-10">
       <PageHeading />
@@ -225,4 +346,10 @@ export default function Home() {
       <CategorySummary />
     </div>
   );
+}
+
+export default async function Home() {
+  const { isAuthenticated } = await getAuthState();
+
+  return isAuthenticated ? <MemoDashboard /> : <PublicHome />;
 }

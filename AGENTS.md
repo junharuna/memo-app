@@ -33,7 +33,7 @@ Keep `.env.local` untracked; document variables in `.env.example`. Only the URL 
 
 ## Product Direction & Current Status
 
-TagNote is intended to become a personal memo application for capturing Markdown notes and organizing them with categories and tags. The current home page, navigation, search, memo cards, profile, and category data are presentation-only samples. Buttons and filters are placeholders unless their behavior is covered by tests and backed by application data. Preserve the shared application shell in `components/layout/app-shell.tsx` as routes are added.
+TagNote is intended to become a personal memo application for capturing Markdown notes and organizing them with categories and tags. The public home page and passwordless authentication flow are implemented; unauthenticated users receive the public shell and cannot access memo controls. The authenticated home page, navigation, search, memo cards, profile, and category data remain presentation-only samples. Buttons and filters are placeholders unless their behavior is covered by tests and backed by application data. Preserve the shared application shell in `components/layout/app-shell.tsx` as routes are added.
 
 The product should remain focused, responsive, and accessible. Follow Apple-inspired interaction principles: clear hierarchy, restrained decoration, generous spacing, immediate feedback, keyboard support, reduced-motion support, and first-class light and dark appearances. Do not copy Apple assets or interfaces verbatim.
 
