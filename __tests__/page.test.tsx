@@ -2,9 +2,13 @@ import { render, screen } from "@testing-library/react";
 import Home from "@/app/page";
 import { AppShell } from "@/components/layout/app-shell";
 
-function renderHome() {
+jest.mock("../app/auth/actions", () => ({
+  signOutAction: jest.fn(),
+}));
+
+function renderHome(isAuthenticated = false) {
   return render(
-    <AppShell>
+    <AppShell isAuthenticated={isAuthenticated}>
       <Home />
     </AppShell>,
   );
@@ -20,6 +24,16 @@ describe("Home", () => {
     expect(screen.getByRole("navigation", { name: "メインナビゲーション" })).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Memora ホーム" })).not.toHaveLength(0);
     expect(screen.getByRole("link", { name: "サインアップ" })).toHaveAttribute("href", "/signup");
+    expect(screen.getByRole("link", { name: "サインイン" })).toHaveAttribute("href", "/signin");
+    expect(screen.queryByRole("button", { name: "サインアウト" })).not.toBeInTheDocument();
+  });
+
+  it("shows sign-out instead of sign-in links for an authenticated user", () => {
+    renderHome(true);
+
+    expect(screen.getByRole("button", { name: "サインアウト" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "サインイン" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "サインアップ" })).not.toBeInTheDocument();
   });
 
   it("renders useful starter content without requiring backend data", () => {

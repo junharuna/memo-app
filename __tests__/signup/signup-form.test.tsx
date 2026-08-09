@@ -35,7 +35,7 @@ describe("SignupForm", () => {
       expect(mockSignInWithOtp).toHaveBeenCalledWith({
         email: "user@example.com",
         options: {
-          emailRedirectTo: "http://localhost/",
+          emailRedirectTo: "http://localhost/auth/callback",
           shouldCreateUser: true,
         },
       });

@@ -10,6 +10,7 @@ export type IconName =
   | "folder"
   | "grid"
   | "inbox"
+  | "logOut"
   | "menu"
   | "moreHorizontal"
   | "plus"
@@ -18,7 +19,9 @@ export type IconName =
   | "sparkles"
   | "star"
   | "tag"
-  | "trash";
+  | "trash"
+  | "user"
+  | "userPlus";
 
 type IconProps = SVGProps<SVGSVGElement> & {
   name: IconName;
@@ -69,6 +72,13 @@ const paths: Record<IconName, React.ReactNode> = {
       <path d="M2 15h5l2 3h6l2-3h5" />
     </>
   ),
+  logOut: (
+    <>
+      <path d="M10 17l5-5-5-5" />
+      <path d="M15 12H3" />
+      <path d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5" />
+    </>
+  ),
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
   moreHorizontal: <path d="M5 12h.01M12 12h.01M19 12h.01" strokeWidth="3" />,
   plus: <path d="M12 5v14M5 12h14" />,
@@ -101,6 +111,19 @@ const paths: Record<IconName, React.ReactNode> = {
   trash: (
     <>
       <path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6" />
+    </>
+  ),
+  user: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21a8 8 0 0 1 16 0" />
+    </>
+  ),
+  userPlus: (
+    <>
+      <circle cx="9" cy="8" r="4" />
+      <path d="M2 21a7 7 0 0 1 12-4.9" />
+      <path d="M19 14v6M16 17h6" />
     </>
   ),
 };

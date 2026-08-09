@@ -1,9 +1,11 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { SignOutForm } from "@/components/auth/sign-out-form";
 import { Icon, type IconName } from "@/components/ui/icon";
 
 type AppShellProps = {
   children: ReactNode;
+  isAuthenticated?: boolean;
 };
 
 type NavigationItem = {
@@ -155,7 +157,7 @@ function Sidebar() {
   );
 }
 
-function Header() {
+function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--hairline)] bg-[color-mix(in_srgb,var(--surface)_82%,transparent)] backdrop-blur-2xl">
       <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:h-20 lg:px-8 xl:px-10">
@@ -177,9 +179,6 @@ function Header() {
         </label>
 
         <div className="ml-auto flex shrink-0 items-center gap-2">
-          <Link className="primary-button whitespace-nowrap px-3 sm:px-4" href="/signup">
-            サインアップ
-          </Link>
           <div className="hidden items-center gap-2 sm:flex">
             <button
               aria-label="通知を見る"
@@ -196,15 +195,29 @@ function Header() {
             >
               <Icon name="settings" size={19} />
             </button>
-            <span className="mx-1 h-5 w-px bg-[var(--hairline)]" aria-hidden="true" />
-            <button
-              aria-label="プロフィールを開く"
-              className="avatar transition hover:ring-4 hover:ring-blue-500/10"
-              type="button"
-            >
-              H
-            </button>
           </div>
+          {isAuthenticated ? (
+            <SignOutForm />
+          ) : (
+            <>
+              <Link
+                aria-label="サインイン"
+                className="secondary-button size-10 px-0 sm:w-auto sm:px-3"
+                href="/signin"
+              >
+                <Icon name="user" size={18} />
+                <span className="hidden sm:inline">サインイン</span>
+              </Link>
+              <Link
+                aria-label="サインアップ"
+                className="primary-button size-10 whitespace-nowrap px-0 sm:w-auto sm:px-4"
+                href="/signup"
+              >
+                <Icon name="userPlus" size={18} />
+                <span className="hidden sm:inline">サインアップ</span>
+              </Link>
+            </>
+          )}
           <div className="sm:hidden">
             <NewMemoButton compact />
           </div>
@@ -247,7 +260,7 @@ function MobileNavigation() {
   );
 }
 
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children, isAuthenticated = false }: AppShellProps) {
   return (
     <div className="flex min-h-dvh bg-[var(--surface)]">
       <a className="skip-link" href="#main-content">
@@ -255,7 +268,7 @@ export function AppShell({ children }: AppShellProps) {
       </a>
       <Sidebar />
       <div className="min-w-0 flex-1">
-        <Header />
+        <Header isAuthenticated={isAuthenticated} />
         <main id="main-content" className="pb-24 lg:pb-0">
           {children}
         </main>

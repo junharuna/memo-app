@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppShell } from "@/components/layout/app-shell";
+import { getAuthState } from "@/lib/supabase/auth";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -21,18 +22,20 @@ export const metadata: Metadata = {
   description: "マークダウンで書き、カテゴリとタグで整える、シンプルなメモアプリ。",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { isAuthenticated } = await getAuthState();
+
   return (
     <html
       lang="ja"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <AppShell>{children}</AppShell>
+        <AppShell isAuthenticated={isAuthenticated}>{children}</AppShell>
       </body>
     </html>
   );
