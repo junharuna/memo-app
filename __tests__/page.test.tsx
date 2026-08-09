@@ -62,7 +62,7 @@ describe("Home", () => {
 
     expect(screen.getByRole("heading", { level: 1, name: "すべてのメモ" })).toBeInTheDocument();
     expect(screen.getByRole("searchbox", { name: "メモを検索" })).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "新しいメモを作成" })).not.toHaveLength(0);
+    expect(screen.getAllByRole("link", { name: "新しいメモを作成" })).not.toHaveLength(0);
     expect(screen.getByRole("navigation", { name: "メインナビゲーション" })).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "TagNote ホーム" })).not.toHaveLength(0);
     expect(screen.getByRole("button", { name: "サインアウト" })).toBeInTheDocument();

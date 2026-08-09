@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // AGENTS.md already contains the project-specific bundled-docs instruction.
+  agentRules: false,
 };
 
 export default nextConfig;

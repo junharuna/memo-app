@@ -192,14 +192,14 @@ function PageHeading() {
           <Icon name="grid" size={17} />
           <span className="hidden sm:inline">グリッド</span>
         </button>
-        <button
+        <Link
           aria-label="新しいメモを作成"
           className="primary-button"
-          type="button"
+          href="/memos/new"
         >
           <Icon name="plus" size={18} />
           新しいメモ
-        </button>
+        </Link>
       </div>
     </div>
   );

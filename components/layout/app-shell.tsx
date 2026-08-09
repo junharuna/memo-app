@@ -52,18 +52,18 @@ function Brand() {
 
 function NewMemoButton({ compact = false }: { compact?: boolean }) {
   return (
-    <button
+    <Link
       aria-label="新しいメモを作成"
       className={
         compact
           ? "flex size-10 items-center justify-center rounded-full bg-[var(--ink)] text-[var(--surface)] shadow-[0_5px_18px_rgba(22,26,35,0.18)] transition hover:scale-[1.04] active:scale-95"
           : "flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--ink)] px-4 text-sm font-semibold text-[var(--surface)] shadow-[0_8px_24px_rgba(22,26,35,0.14)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(22,26,35,0.18)] active:translate-y-0"
       }
-      type="button"
+      href="/memos/new"
     >
       <Icon name="plus" size={compact ? 19 : 18} />
       {!compact && <span>新しいメモ</span>}
-    </button>
+    </Link>
   );
 }
 

@@ -11,4 +11,15 @@ const config: Config = {
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
 };
 
-export default createJestConfig(config);
+const createConfig = createJestConfig(config);
+
+async function getJestConfig() {
+  const resolvedConfig = await createConfig();
+
+  return {
+    ...resolvedConfig,
+    transformIgnorePatterns: ["^.+\\.module\\.(css|sass|scss)$"],
+  } satisfies Config;
+}
+
+export default getJestConfig;
