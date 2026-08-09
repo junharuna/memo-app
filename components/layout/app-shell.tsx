@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { SignOutForm } from "@/components/auth/sign-out-form";
+import { AuthControls } from "@/components/auth/auth-controls";
 import { Icon, type IconName } from "@/components/ui/icon";
+import { ToastProvider } from "@/components/ui/toast";
 
 type AppShellProps = {
   children: ReactNode;
@@ -35,7 +36,7 @@ function Brand() {
     <Link
       className="group flex w-fit items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500"
       href="/"
-      aria-label="Memora ホーム"
+      aria-label="TagNote ホーム"
     >
       <span className="brand-mark" aria-hidden="true">
         <span />
@@ -43,7 +44,7 @@ function Brand() {
         <span />
       </span>
       <span className="text-[19px] font-semibold tracking-[-0.045em] text-[var(--ink)]">
-        Memora
+        TagNote
       </span>
     </Link>
   );
@@ -196,28 +197,10 @@ function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
               <Icon name="settings" size={19} />
             </button>
           </div>
-          {isAuthenticated ? (
-            <SignOutForm />
-          ) : (
-            <>
-              <Link
-                aria-label="サインイン"
-                className="secondary-button size-10 px-0 sm:w-auto sm:px-3"
-                href="/signin"
-              >
-                <Icon name="user" size={18} />
-                <span className="hidden sm:inline">サインイン</span>
-              </Link>
-              <Link
-                aria-label="サインアップ"
-                className="primary-button size-10 whitespace-nowrap px-0 sm:w-auto sm:px-4"
-                href="/signup"
-              >
-                <Icon name="userPlus" size={18} />
-                <span className="hidden sm:inline">サインアップ</span>
-              </Link>
-            </>
-          )}
+          <AuthControls
+            initialIsAuthenticated={isAuthenticated}
+            key={String(isAuthenticated)}
+          />
           <div className="sm:hidden">
             <NewMemoButton compact />
           </div>
@@ -262,18 +245,20 @@ function MobileNavigation() {
 
 export function AppShell({ children, isAuthenticated = false }: AppShellProps) {
   return (
-    <div className="flex min-h-dvh bg-[var(--surface)]">
-      <a className="skip-link" href="#main-content">
-        メインコンテンツへ移動
-      </a>
-      <Sidebar />
-      <div className="min-w-0 flex-1">
-        <Header isAuthenticated={isAuthenticated} />
-        <main id="main-content" className="pb-24 lg:pb-0">
-          {children}
-        </main>
+    <ToastProvider>
+      <div className="flex min-h-dvh bg-[var(--surface)]">
+        <a className="skip-link" href="#main-content">
+          メインコンテンツへ移動
+        </a>
+        <Sidebar />
+        <div className="min-w-0 flex-1">
+          <Header isAuthenticated={isAuthenticated} />
+          <main id="main-content" className="pb-24 lg:pb-0">
+            {children}
+          </main>
+        </div>
+        <MobileNavigation />
       </div>
-      <MobileNavigation />
-    </div>
+    </ToastProvider>
   );
 }

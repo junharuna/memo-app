@@ -28,12 +28,12 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-it("サインアウト成功時にセッション依存表示を再検証してホームへ戻す", async () => {
+it("サインアウト成功時にセッション依存表示を再検証して通知付きでホームへ戻す", async () => {
   mockSignOutCurrentUser.mockResolvedValue({ status: "success" });
 
-  await expect(signOutAction(initialState)).rejects.toThrow("redirect:/");
+  await expect(signOutAction(initialState)).rejects.toThrow("redirect:/?toast=signed-out");
   expect(mockRevalidatePath).toHaveBeenCalledWith("/", "layout");
-  expect(mockRedirect).toHaveBeenCalledWith("/");
+  expect(mockRedirect).toHaveBeenCalledWith("/?toast=signed-out");
 });
 
 it("サインアウト失敗時は再試行可能なメッセージを返す", async () => {

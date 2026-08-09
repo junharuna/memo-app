@@ -34,31 +34,41 @@ it("認証コードをセッションへ交換して安全なアプリ内URLへ�
   mockExchangeCodeForSession.mockResolvedValue({ error: null });
 
   const response = await GET(
-    new NextRequest("https://memora.example/auth/callback?code=valid-code&next=%2F%3Fview%3Dfavorites"),
+    new NextRequest("https://tagnote.example/auth/callback?code=valid-code&next=%2F%3Fview%3Dfavorites"),
   );
 
   expect(mockExchangeCodeForSession).toHaveBeenCalledWith("valid-code");
-  expect(response.headers.get("location")).toBe("https://memora.example/?view=favorites");
+  expect(response.headers.get("location")).toBe("https://tagnote.example/?view=favorites");
 });
 
 it("外部URLへのリダイレクトを拒否する", async () => {
   mockExchangeCodeForSession.mockResolvedValue({ error: null });
 
   const response = await GET(
-    new NextRequest("https://memora.example/auth/callback?code=valid&next=https://evil.example"),
+    new NextRequest("https://tagnote.example/auth/callback?code=valid&next=https://evil.example"),
   );
 
-  expect(response.headers.get("location")).toBe("https://memora.example/");
+  expect(response.headers.get("location")).toBe("https://tagnote.example/");
+});
+
+it("バックスラッシュで偽装した外部URLへのリダイレクトを拒否する", async () => {
+  mockExchangeCodeForSession.mockResolvedValue({ error: null });
+
+  const response = await GET(
+    new NextRequest("https://tagnote.example/auth/callback?code=valid&next=%2F%5Cevil.example"),
+  );
+
+  expect(response.headers.get("location")).toBe("https://tagnote.example/");
 });
 
 it("認証コードの交換失敗をサインイン画面へ返す", async () => {
   mockExchangeCodeForSession.mockResolvedValue({ error: new Error("invalid code") });
 
   const response = await GET(
-    new NextRequest("https://memora.example/auth/callback?code=invalid&next=https://evil.example"),
+    new NextRequest("https://tagnote.example/auth/callback?code=invalid&next=https://evil.example"),
   );
 
   expect(response.headers.get("location")).toBe(
-    "https://memora.example/signin?error=callback",
+    "https://tagnote.example/signin?toast=auth-error",
   );
 });

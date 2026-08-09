@@ -1,5 +1,5 @@
 {
-  "name": "memo-app",
+  "name": "tagnote",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,7 +9,8 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "supabase:email-templates": "node scripts/update-supabase-email-templates.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

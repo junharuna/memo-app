@@ -1,4 +1,6 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TagNote
+
+TagNoteは、Markdownメモをカテゴリとタグで整理するための個人向けノートアプリです。Next.js App Router、TypeScript、Tailwind CSS、Supabaseで構築しています。
 
 ## Getting Started
 
@@ -14,11 +16,21 @@ Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in
 `lib/supabase/server.ts` from server code. The root `proxy.ts` refreshes auth
 cookies for SSR requests. Never commit `.env.local`.
 
-For passwordless email authentication, add the callback URL to Supabase Auth's
-allowed redirect URLs (for example, `http://localhost:3000/auth/callback`
-locally and the equivalent production URL when deployed). The callback
-exchanges the email link's authorization code for a cookie-backed session and
-then redirects the user to the application home page.
+For passwordless email authentication, set the Supabase Auth Site URL to the
+application origin (for example, `http://localhost:3000` locally). The Japanese
+templates in `supabase/templates/` send their token hash to `/auth/confirm`,
+which verifies it and creates a cookie-backed session.
+
+To publish the TagNote email subjects and templates to a hosted Supabase
+project, create a personal access token in the Supabase dashboard and run:
+
+```bash
+SUPABASE_PROJECT_REF=your-project-ref \
+SUPABASE_ACCESS_TOKEN=your-personal-access-token \
+npm run supabase:email-templates
+```
+
+Keep the personal access token outside `.env.local` and never commit it.
 
 Check the configured Supabase connection with `GET /api/health/supabase`. It
 returns `{"status":"ok"}` with HTTP 200 when Supabase is reachable, or a

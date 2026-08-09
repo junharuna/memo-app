@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import { signOutAction, type SignOutActionState } from "@/app/auth/actions";
 import { Icon } from "@/components/ui/icon";
+import { useToast } from "@/components/ui/toast";
 
 const initialState: SignOutActionState = {
   message: "",
@@ -27,20 +28,17 @@ function SignOutButton() {
 
 export function SignOutForm() {
   const [state, formAction] = useActionState(signOutAction, initialState);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (state.message) {
+      showToast({ message: state.message, tone: "error" });
+    }
+  }, [showToast, state]);
 
   return (
-    <div className="relative">
-      <form action={formAction}>
-        <SignOutButton />
-      </form>
-      {state.message && (
-        <p
-          className="absolute right-0 top-12 w-64 rounded-xl border border-red-500/20 bg-[var(--surface-raised)] px-3 py-2.5 text-sm leading-5 text-red-700 shadow-lg dark:text-red-300"
-          role="alert"
-        >
-          {state.message}
-        </p>
-      )}
-    </div>
+    <form action={formAction}>
+      <SignOutButton />
+    </form>
   );
 }

@@ -1,10 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import SigninPage from "@/app/signin/page";
+import { ToastProvider } from "@/components/ui/toast";
 
 it("メールアドレスだけのサインイン画面を表示する", async () => {
-  render(await SigninPage());
+  render(<ToastProvider>{await SigninPage()}</ToastProvider>);
 
   expect(screen.getByRole("heading", { level: 1, name: "サインイン" })).toBeInTheDocument();
+  expect(screen.getByText("WELCOME TO TAGNOTE")).toBeInTheDocument();
   expect(screen.getByRole("textbox", { name: "メールアドレス" })).toHaveAttribute(
     "type",
     "email",
@@ -14,10 +16,4 @@ it("メールアドレスだけのサインイン画面を表示する", async (
     "href",
     "/signup",
   );
-});
-
-it("認証コールバックの失敗を通知する", async () => {
-  render(await SigninPage({ searchParams: Promise.resolve({ error: "callback" }) }));
-
-  expect(screen.getByRole("alert")).toHaveTextContent("認証リンクを確認できませんでした");
 });

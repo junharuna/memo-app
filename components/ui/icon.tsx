@@ -6,6 +6,7 @@ export type IconName =
   | "book"
   | "check"
   | "chevronRight"
+  | "circleAlert"
   | "fileText"
   | "folder"
   | "grid"
@@ -21,7 +22,8 @@ export type IconName =
   | "tag"
   | "trash"
   | "user"
-  | "userPlus";
+  | "userPlus"
+  | "x";
 
 type IconProps = SVGProps<SVGSVGElement> & {
   name: IconName;
@@ -51,6 +53,12 @@ const paths: Record<IconName, React.ReactNode> = {
   ),
   check: <path d="m5 12 4 4L19 6" />,
   chevronRight: <path d="m9 18 6-6-6-6" />,
+  circleAlert: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8v5M12 16h.01" />
+    </>
+  ),
   fileText: (
     <>
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
@@ -126,6 +134,7 @@ const paths: Record<IconName, React.ReactNode> = {
       <path d="M19 14v6M16 17h6" />
     </>
   ),
+  x: <path d="m6 6 12 12M18 6 6 18" />,
 };
 
 export function Icon({ name, size = 20, ...props }: IconProps) {

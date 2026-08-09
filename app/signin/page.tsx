@@ -5,16 +5,10 @@ import { SigninForm } from "./signin-form";
 
 export const metadata: Metadata = {
   title: "サインイン",
-  description: "メールアドレスでMemoraへサインインします。",
+  description: "メールアドレスでTagNoteへサインインします。",
 };
 
-type SigninPageProps = {
-  searchParams?: Promise<{ error?: string }>;
-};
-
-export default async function SigninPage({ searchParams }: SigninPageProps = {}) {
-  const { error } = searchParams ? await searchParams : {};
-
+export default function SigninPage() {
   return (
     <AuthPageCard
       description="登録済みのメールアドレスへ届くリンクから、安全にサインインできます。"
@@ -28,14 +22,6 @@ export default async function SigninPage({ searchParams }: SigninPageProps = {})
       }
       title="サインイン"
     >
-      {error === "callback" && (
-        <p
-          className="mt-6 rounded-xl border border-red-500/20 bg-red-500/8 px-3 py-2.5 text-sm leading-6 text-red-700 dark:text-red-300"
-          role="alert"
-        >
-          認証リンクを確認できませんでした。もう一度サインインメールを送信してください。
-        </p>
-      )}
       <SigninForm />
     </AuthPageCard>
   );

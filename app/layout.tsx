@@ -15,11 +15,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  applicationName: "TagNote",
   title: {
-    default: "Memora — 思考を、美しく残す",
-    template: "%s | Memora",
+    default: "TagNote — メモを、タグで整える",
+    template: "%s | TagNote",
   },
-  description: "マークダウンで書き、カテゴリとタグで整える、シンプルなメモアプリ。",
+  description: "Markdownメモをカテゴリとタグで整理できる、シンプルなノートアプリ。",
 };
 
 export default async function RootLayout({

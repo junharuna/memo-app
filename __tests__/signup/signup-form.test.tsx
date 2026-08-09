@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createBrowserClient } from "@supabase/ssr";
 import { SignupForm } from "@/app/signup/signup-form";
+import { ToastProvider } from "@/components/ui/toast";
 
 jest.mock("@supabase/ssr", () => ({
   createBrowserClient: jest.fn(),
@@ -8,6 +9,14 @@ jest.mock("@supabase/ssr", () => ({
 
 const mockCreateBrowserClient = jest.mocked(createBrowserClient);
 const mockSignInWithOtp = jest.fn();
+
+function renderSignupForm() {
+  return render(
+    <ToastProvider>
+      <SignupForm />
+    </ToastProvider>,
+  );
+}
 
 beforeEach(() => {
   process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
@@ -24,7 +33,7 @@ afterEach(() => {
 
 describe("SignupForm", () => {
   it("メールアドレスだけでサインアップ用メールを送信する", async () => {
-    render(<SignupForm />);
+    renderSignupForm();
 
     fireEvent.change(screen.getByRole("textbox", { name: "メールアドレス" }), {
       target: { value: "  user@example.com  " },
@@ -35,7 +44,7 @@ describe("SignupForm", () => {
       expect(mockSignInWithOtp).toHaveBeenCalledWith({
         email: "user@example.com",
         options: {
-          emailRedirectTo: "http://localhost/auth/callback",
+          emailRedirectTo: "http://localhost/auth/callback?next=%2F%3Ftoast%3Dsigned-up",
           shouldCreateUser: true,
         },
       });
@@ -44,7 +53,7 @@ describe("SignupForm", () => {
   });
 
   it("不正なメールアドレスはSupabaseへ送信しない", async () => {
-    render(<SignupForm />);
+    renderSignupForm();
 
     const emailInput = screen.getByRole("textbox", { name: "メールアドレス" });
     fireEvent.change(emailInput, { target: { value: "invalid-address" } });
@@ -62,7 +71,7 @@ describe("SignupForm", () => {
       data: {},
       error: new Error("rate limit exceeded"),
     });
-    render(<SignupForm />);
+    renderSignupForm();
 
     fireEvent.change(screen.getByRole("textbox", { name: "メールアドレス" }), {
       target: { value: "user@example.com" },
@@ -76,7 +85,7 @@ describe("SignupForm", () => {
 
   it("ネットワーク例外を利用者へ通知する", async () => {
     mockSignInWithOtp.mockRejectedValue(new Error("network unavailable"));
-    render(<SignupForm />);
+    renderSignupForm();
 
     fireEvent.change(screen.getByRole("textbox", { name: "メールアドレス" }), {
       target: { value: "user@example.com" },

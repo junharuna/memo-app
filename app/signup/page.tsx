@@ -5,7 +5,7 @@ import { SignupForm } from "./signup-form";
 
 export const metadata: Metadata = {
   title: "サインアップ",
-  description: "メールアドレスでMemoraのアカウントを作成します。",
+  description: "メールアドレスでTagNoteのアカウントを作成します。",
 };
 
 export default function SignupPage() {

@@ -1,6 +1,7 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
+import { useToast } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
 
 type EmailAuthMode = "signin" | "signup";
@@ -30,9 +31,9 @@ const copyByMode = {
 
 export function EmailAuthForm({ mode }: EmailAuthFormProps) {
   const [email, setEmail] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [validationError, setValidationError] = useState("");
   const [isPending, setIsPending] = useState(false);
-  const [isSuccessful, setIsSuccessful] = useState(false);
+  const { showToast } = useToast();
   const copy = copyByMode[mode];
   const fieldId = `${mode}-email`;
   const helpId = `${fieldId}-help`;
@@ -42,11 +43,10 @@ export function EmailAuthForm({ mode }: EmailAuthFormProps) {
     event.preventDefault();
 
     const normalizedEmail = email.trim();
-    setErrorMessage("");
-    setIsSuccessful(false);
+    setValidationError("");
 
     if (!EMAIL_PATTERN.test(normalizedEmail)) {
-      setErrorMessage("有効なメールアドレスを入力してください。");
+      setValidationError("有効なメールアドレスを入力してください。");
       return;
     }
 
@@ -54,29 +54,34 @@ export function EmailAuthForm({ mode }: EmailAuthFormProps) {
 
     try {
       const supabase = createClient();
+      const callbackUrl = new URL("/auth/callback", window.location.origin);
+      callbackUrl.searchParams.set(
+        "next",
+        `/?toast=${mode === "signup" ? "signed-up" : "signed-in"}`,
+      );
       const { error } = await supabase.auth.signInWithOtp({
         email: normalizedEmail,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: callbackUrl.toString(),
           shouldCreateUser: mode === "signup",
         },
       });
 
       if (error) {
-        setErrorMessage(copy.error);
+        showToast({ message: copy.error, tone: "error" });
         return;
       }
 
       setEmail(normalizedEmail);
-      setIsSuccessful(true);
+      showToast({ message: copy.success, tone: "success" });
     } catch {
-      setErrorMessage(copy.error);
+      showToast({ message: copy.error, tone: "error" });
     } finally {
       setIsPending(false);
     }
   }
 
-  const describedBy = errorMessage ? `${helpId} ${errorId}` : helpId;
+  const describedBy = validationError ? `${helpId} ${errorId}` : helpId;
 
   return (
     <form className="mt-8" noValidate onSubmit={handleSubmit}>
@@ -86,7 +91,7 @@ export function EmailAuthForm({ mode }: EmailAuthFormProps) {
         </label>
         <input
           aria-describedby={describedBy}
-          aria-invalid={errorMessage ? "true" : undefined}
+          aria-invalid={validationError ? "true" : undefined}
           autoCapitalize="none"
           autoComplete="email"
           className="mt-2 h-10 w-full rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)] px-3 text-sm text-[var(--ink)] outline-none transition placeholder:text-[var(--muted-soft)] focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10"
@@ -104,22 +109,13 @@ export function EmailAuthForm({ mode }: EmailAuthFormProps) {
         </p>
       </div>
 
-      {errorMessage && (
+      {validationError && (
         <p
           className="mt-4 rounded-xl border border-red-500/20 bg-red-500/8 px-3 py-2.5 text-sm leading-6 text-red-700 dark:text-red-300"
           id={errorId}
           role="alert"
         >
-          {errorMessage}
-        </p>
-      )}
-
-      {isSuccessful && (
-        <p
-          className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/8 px-3 py-2.5 text-sm leading-6 text-emerald-700 dark:text-emerald-300"
-          role="status"
-        >
-          {copy.success}
+          {validationError}
         </p>
       )}
 

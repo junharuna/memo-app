@@ -14,7 +14,7 @@ export function AuthPageCard({ children, description, footer, title }: AuthPageC
         aria-labelledby="auth-page-title"
         className="w-full max-w-lg rounded-[20px] border border-[var(--hairline)] bg-[var(--surface-raised)] p-5 shadow-[0_2px_3px_rgba(20,24,31,0.02),0_12px_30px_rgba(20,24,31,0.025)] sm:p-8"
       >
-        <p className="eyebrow">WELCOME TO MEMORA</p>
+        <p className="eyebrow">WELCOME TO TAGNOTE</p>
         <h1
           className="mt-3 text-[clamp(2rem,8vw,2.75rem)] font-semibold leading-none tracking-[-0.06em] text-[var(--ink)]"
           id="auth-page-title"

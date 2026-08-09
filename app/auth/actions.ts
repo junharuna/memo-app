@@ -26,5 +26,5 @@ export async function signOutAction(
     redirect("/signin");
   }
 
-  redirect("/");
+  redirect("/?toast=signed-out");
 }

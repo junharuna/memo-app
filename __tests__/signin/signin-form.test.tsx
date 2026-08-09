@@ -1,6 +1,7 @@
 import { createBrowserClient } from "@supabase/ssr";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { SigninForm } from "@/app/signin/signin-form";
+import { ToastProvider } from "@/components/ui/toast";
 
 jest.mock("@supabase/ssr", () => ({
   createBrowserClient: jest.fn(),
@@ -8,6 +9,14 @@ jest.mock("@supabase/ssr", () => ({
 
 const mockCreateBrowserClient = jest.mocked(createBrowserClient);
 const mockSignInWithOtp = jest.fn();
+
+function renderSigninForm() {
+  return render(
+    <ToastProvider>
+      <SigninForm />
+    </ToastProvider>,
+  );
+}
 
 beforeEach(() => {
   process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
@@ -23,7 +32,7 @@ afterEach(() => {
 });
 
 it("既存ユーザーだけにサインイン用メールを送信する", async () => {
-  render(<SigninForm />);
+  renderSigninForm();
 
   fireEvent.change(screen.getByRole("textbox", { name: "メールアドレス" }), {
     target: { value: "user@example.com" },
@@ -34,7 +43,7 @@ it("既存ユーザーだけにサインイン用メールを送信する", asyn
     expect(mockSignInWithOtp).toHaveBeenCalledWith({
       email: "user@example.com",
       options: {
-        emailRedirectTo: "http://localhost/auth/callback",
+        emailRedirectTo: "http://localhost/auth/callback?next=%2F%3Ftoast%3Dsigned-in",
         shouldCreateUser: false,
       },
     });

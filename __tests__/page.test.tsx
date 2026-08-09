@@ -6,6 +6,17 @@ jest.mock("../app/auth/actions", () => ({
   signOutAction: jest.fn(),
 }));
 
+jest.mock("../lib/supabase/client", () => ({
+  createClient: () => ({
+    auth: {
+      getClaims: () => new Promise(() => undefined),
+      onAuthStateChange: () => ({
+        data: { subscription: { unsubscribe: jest.fn() } },
+      }),
+    },
+  }),
+}));
+
 function renderHome(isAuthenticated = false) {
   return render(
     <AppShell isAuthenticated={isAuthenticated}>
@@ -22,7 +33,7 @@ describe("Home", () => {
     expect(screen.getByRole("searchbox", { name: "メモを検索" })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "新しいメモを作成" })).not.toHaveLength(0);
     expect(screen.getByRole("navigation", { name: "メインナビゲーション" })).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: "Memora ホーム" })).not.toHaveLength(0);
+    expect(screen.getAllByRole("link", { name: "TagNote ホーム" })).not.toHaveLength(0);
     expect(screen.getByRole("link", { name: "サインアップ" })).toHaveAttribute("href", "/signup");
     expect(screen.getByRole("link", { name: "サインイン" })).toHaveAttribute("href", "/signin");
     expect(screen.queryByRole("button", { name: "サインアウト" })).not.toBeInTheDocument();

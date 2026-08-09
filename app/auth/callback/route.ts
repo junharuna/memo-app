@@ -1,13 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { getSafeNextPath } from "@/lib/supabase/auth-redirect";
 import { createClient } from "@/lib/supabase/server";
-
-function getSafeNextPath(value: string | null) {
-  if (!value?.startsWith("/") || value.startsWith("//")) {
-    return "/";
-  }
-
-  return value;
-}
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
@@ -23,7 +16,7 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.redirect(
-    new URL("/signin?error=callback", request.nextUrl.origin),
+    new URL("/signin?toast=auth-error", request.nextUrl.origin),
     303,
   );
 }
