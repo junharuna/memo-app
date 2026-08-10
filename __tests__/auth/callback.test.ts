@@ -39,6 +39,7 @@ it("認証コードをセッションへ交換して安全なアプリ内URLへ�
 
   expect(mockExchangeCodeForSession).toHaveBeenCalledWith("valid-code");
   expect(response.headers.get("location")).toBe("https://tagnote.example/?view=favorites");
+  expect(response.headers.get("cache-control")).toBe("private, no-store");
 });
 
 it("外部URLへのリダイレクトを拒否する", async () => {
@@ -71,4 +72,5 @@ it("認証コードの交換失敗をサインイン画面へ返す", async () =
   expect(response.headers.get("location")).toBe(
     "https://tagnote.example/signin?toast=auth-error",
   );
+  expect(response.headers.get("cache-control")).toBe("private, no-store");
 });
