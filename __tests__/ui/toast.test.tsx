@@ -60,7 +60,8 @@ it("認証エラーを警告として通知する", () => {
 it.each([
   ["signed-up", "サインアップしました。"],
   ["signed-in", "サインインしました。"],
-])("%s の認証完了を通知する", (toastKey, message) => {
+  ["memo-updated", "メモを更新しました。"],
+])("%s のリダイレクト結果を通知する", (toastKey, message) => {
   window.history.replaceState({}, "", `/?toast=${toastKey}`);
 
   render(<ToastProvider><div>ホーム</div></ToastProvider>);

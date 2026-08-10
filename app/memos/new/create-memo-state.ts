@@ -1,16 +1,2 @@
-export type CreateMemoState = {
-  fieldErrors: {
-    content?: string;
-    title?: string;
-  };
-  message: string;
-  status: "error" | "idle" | "success";
-  submissionId: number;
-};
-
-export const initialCreateMemoState: CreateMemoState = {
-  fieldErrors: {},
-  message: "",
-  status: "idle",
-  submissionId: 0,
-};
+export type { MemoFormState as CreateMemoState } from "@/lib/memos/form-state";
+export { initialMemoFormState as initialCreateMemoState } from "@/lib/memos/form-state";

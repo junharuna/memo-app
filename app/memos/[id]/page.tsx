@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { MarkdownContent } from "@/components/memos/markdown-content";
 import { Icon } from "@/components/ui/icon";
 import { formatMemoDate } from "@/lib/memos/format";
+import { isValidMemoId } from "@/lib/memos/id";
 import { getMemoForCurrentUser } from "@/lib/memos/queries";
 
 export const metadata: Metadata = {
@@ -14,8 +15,6 @@ export const metadata: Metadata = {
 type MemoDetailPageProps = {
   params: Promise<{ id: string }>;
 };
-
-const UUID_PATTERN = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
 
 function MemoLoadError({ id }: { id: string }) {
   return (
@@ -44,7 +43,7 @@ function MemoLoadError({ id }: { id: string }) {
 export default async function MemoDetailPage({ params }: MemoDetailPageProps) {
   const { id } = await params;
 
-  if (!UUID_PATTERN.test(id)) {
+  if (!isValidMemoId(id)) {
     notFound();
   }
 
@@ -66,13 +65,22 @@ export default async function MemoDetailPage({ params }: MemoDetailPageProps) {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-7 sm:px-6 sm:py-9 lg:px-8 lg:py-10">
-      <Link
-        className="text-button -ml-2 min-h-10 px-2"
-        href="/"
-      >
-        <Icon className="rotate-180" name="chevronRight" size={16} />
-        メモ一覧へ戻る
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link
+          className="text-button -ml-2 min-h-10 px-2"
+          href="/memos"
+        >
+          <Icon className="rotate-180" name="chevronRight" size={16} />
+          メモ一覧へ戻る
+        </Link>
+        <Link
+          className="secondary-button"
+          href={`/memos/${id}/edit`}
+        >
+          <Icon name="edit" size={17} />
+          メモを編集
+        </Link>
+      </div>
 
       <header className="mt-5 border-b border-[var(--hairline-soft)] pb-6 sm:pb-8">
         <p className="eyebrow">MEMO</p>

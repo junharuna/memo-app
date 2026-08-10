@@ -1,43 +1,14 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { readAndValidateMemo } from "@/lib/memos/validation";
 import type { CreateMemoState } from "./create-memo-state";
-
-const MAX_TITLE_LENGTH = 200;
-const MAX_CONTENT_LENGTH = 100_000;
-
-function readTextField(formData: FormData, name: string) {
-  const value = formData.get(name);
-  return typeof value === "string" ? value : "";
-}
-
-function characterCount(value: string) {
-  return Array.from(value).length;
-}
-
-function validateMemo(title: string, content: string) {
-  const fieldErrors: CreateMemoState["fieldErrors"] = {};
-
-  if (!title) {
-    fieldErrors.title = "タイトルを入力してください。";
-  } else if (characterCount(title) > MAX_TITLE_LENGTH) {
-    fieldErrors.title = "タイトルは200文字以内で入力してください。";
-  }
-
-  if (characterCount(content) > MAX_CONTENT_LENGTH) {
-    fieldErrors.content = "本文は100,000文字以内で入力してください。";
-  }
-
-  return fieldErrors;
-}
 
 export async function createMemoAction(
   previousState: CreateMemoState,
   formData: FormData,
 ): Promise<CreateMemoState> {
-  const title = readTextField(formData, "title").trim();
-  const content = readTextField(formData, "content");
-  const fieldErrors = validateMemo(title, content);
+  const { content, fieldErrors, title } = readAndValidateMemo(formData);
 
   if (Object.keys(fieldErrors).length > 0) {
     return {

@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   createContext,
   type ReactNode,
@@ -8,6 +9,7 @@ import {
   useEffect,
   useRef,
   useState,
+  Suspense,
 } from "react";
 import { Icon } from "@/components/ui/icon";
 
@@ -37,6 +39,10 @@ const redirectToasts = {
     message: "サインインしました。",
     tone: "success",
   },
+  "memo-updated": {
+    message: "メモを更新しました。",
+    tone: "success",
+  },
   "signed-out": {
     message: "サインアウトしました。",
     tone: "success",
@@ -53,6 +59,33 @@ function isRedirectToast(value: string): value is keyof typeof redirectToasts {
   return value in redirectToasts;
 }
 
+function RedirectToastListener({
+  showToast,
+}: {
+  showToast: (toast: ToastInput) => void;
+}) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const search = searchParams?.toString() ?? "";
+
+  useEffect(() => {
+    const currentUrl = new URL(window.location.href);
+    const toastKey = currentUrl.searchParams.get("toast");
+
+    if (!toastKey || !isRedirectToast(toastKey)) {
+      return;
+    }
+
+    currentUrl.searchParams.delete("toast");
+    const nextUrl = `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`;
+
+    showToast(redirectToasts[toastKey]);
+    window.history.replaceState(window.history.state, "", nextUrl);
+  }, [pathname, search, showToast]);
+
+  return null;
+}
+
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<ToastState | null>(null);
   const nextId = useRef(0);
@@ -61,19 +94,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     nextId.current += 1;
     setToast({ ...input, id: nextId.current });
   }, []);
-
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const toastKey = url.searchParams.get("toast");
-
-    if (!toastKey || !isRedirectToast(toastKey)) {
-      return;
-    }
-
-    url.searchParams.delete("toast");
-    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
-    showToast(redirectToasts[toastKey]);
-  }, [showToast]);
 
   useEffect(() => {
     if (!toast) {
@@ -90,6 +110,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
+      <Suspense fallback={null}>
+        <RedirectToastListener showToast={showToast} />
+      </Suspense>
       {toast && (
         <div
           aria-atomic="true"

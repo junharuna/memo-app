@@ -45,7 +45,11 @@ it("所有するメモのMarkdown本文を安全に表示する", async () => {
   expect(article.querySelectorAll("br")).toHaveLength(1);
   expect(within(article).getByRole("checkbox")).toBeChecked();
   expect(article.querySelector("script")).not.toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "メモ一覧へ戻る" })).toHaveAttribute("href", "/");
+  expect(screen.getByRole("link", { name: "メモ一覧へ戻る" })).toHaveAttribute("href", "/memos");
+  expect(screen.getByRole("link", { name: "メモを編集" })).toHaveAttribute(
+    "href",
+    `/memos/${memoId}/edit`,
+  );
 });
 
 it("不正なIDと所有していないメモは404にする", async () => {
