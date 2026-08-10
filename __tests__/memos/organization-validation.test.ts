@@ -7,12 +7,23 @@ import {
 
 describe("カテゴリ入力", () => {
   it("名前をtrimしDesign Systemの分類色だけを受け付ける", () => {
-    expect(validateCategoryInput("  仕事  ", "blue")).toEqual({
-      colorKey: "blue",
+    expect(validateCategoryInput("  仕事  ", "teal")).toEqual({
+      colorKey: "teal",
       fieldErrors: {},
       name: "仕事",
     });
-    expect(CATEGORY_COLORS).toEqual(["blue", "orange", "violet"]);
+    expect(CATEGORY_COLORS).toEqual([
+      "blue",
+      "sky",
+      "cyan",
+      "teal",
+      "lime",
+      "yellow",
+      "orange",
+      "rose",
+      "pink",
+      "violet",
+    ]);
   });
 
   it("空、50文字超過、不正な色を拒否する", () => {

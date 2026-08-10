@@ -8,24 +8,14 @@ import {
 } from "@/app/categories/actions";
 import { OrganizationDeleteButton } from "@/components/memos/organization-delete-button";
 import { Icon } from "@/components/ui/icon";
+import {
+  CATEGORY_COLOR_OPTIONS,
+  getCategoryColorPresentation,
+  type CategoryColor,
+} from "@/lib/memos/category-colors";
 import type { CategoryRecord } from "@/lib/memos/organization-queries";
 import { initialOrganizationState } from "@/lib/memos/organization-state";
-import {
-  CATEGORY_COLORS,
-  CATEGORY_NAME_MAX_LENGTH,
-} from "@/lib/memos/organization-validation";
-
-const colorLabels = {
-  blue: "ブルー",
-  orange: "オレンジ",
-  violet: "バイオレット",
-};
-
-const colorClasses = {
-  blue: "bg-[#5e8bff]",
-  orange: "bg-[#ff9f56]",
-  violet: "bg-[#a67cf7]",
-};
+import { CATEGORY_NAME_MAX_LENGTH } from "@/lib/memos/organization-validation";
 
 function Feedback({ message, status }: { message: string; status: "error" | "idle" | "success" }) {
   if (!message) return null;
@@ -39,6 +29,67 @@ function Feedback({ message, status }: { message: string; status: "error" | "idl
   );
 }
 
+function CategoryColorPicker({
+  defaultColor,
+  error,
+  idPrefix,
+  wide = false,
+}: {
+  defaultColor: CategoryColor;
+  error?: string;
+  idPrefix: string;
+  wide?: boolean;
+}) {
+  const errorId = `${idPrefix}-error`;
+
+  return (
+    <fieldset aria-describedby={error ? errorId : undefined}>
+      <legend className="text-sm font-semibold text-[var(--ink)]">分類色</legend>
+      <div
+        className={`mt-2 grid grid-cols-2 gap-2 ${wide ? "md:grid-cols-5" : ""}`}
+      >
+        {CATEGORY_COLOR_OPTIONS.map((color) => (
+          <label
+            className="relative flex min-h-11 cursor-pointer items-center gap-2 rounded-xl px-2.5 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--nav-hover)]"
+            key={color.key}
+          >
+            <input
+              className="peer sr-only"
+              defaultChecked={color.key === defaultColor}
+              name="colorKey"
+              type="radio"
+              value={color.key}
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 rounded-xl border border-[var(--hairline)] peer-checked:border-blue-500/45 peer-checked:bg-blue-500/8 peer-focus-visible:ring-4 peer-focus-visible:ring-blue-500/20"
+            />
+            <span
+              aria-hidden="true"
+              className="relative size-4 shrink-0 rounded-full ring-1 ring-black/10 dark:ring-white/20"
+              data-testid={`category-color-swatch-${color.key}`}
+              style={{ backgroundColor: color.value }}
+            />
+            <span className="relative min-w-0 truncate pr-4 peer-checked:text-[var(--ink)]">
+              {color.label}
+            </span>
+            <Icon
+              className="absolute right-2.5 z-10 shrink-0 text-blue-600 opacity-0 peer-checked:opacity-100 dark:text-blue-300"
+              name="check"
+              size={14}
+            />
+          </label>
+        ))}
+      </div>
+      {error && (
+        <p className="mt-2 text-sm text-red-700 dark:text-red-300" id={errorId}>
+          {error}
+        </p>
+      )}
+    </fieldset>
+  );
+}
+
 function CategoryRow({ category }: { category: CategoryRecord }) {
   const updateAction = updateCategoryAction.bind(null, category.id);
   const deleteAction = deleteCategoryAction.bind(null, category.id);
@@ -46,11 +97,12 @@ function CategoryRow({ category }: { category: CategoryRecord }) {
     updateAction,
     initialOrganizationState,
   );
+  const color = getCategoryColorPresentation(category.colorKey);
 
   return (
     <article className="rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)] p-4 shadow-[0_2px_8px_rgba(20,24,31,0.025)]">
       <form action={formAction} aria-label={`${category.name}を編集`}>
-        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_13rem_auto] md:items-end">
+        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
           <div>
             <label className="text-sm font-semibold text-[var(--ink)]" htmlFor={`category-name-${category.id}`}>
               カテゴリ名
@@ -65,29 +117,29 @@ function CategoryRow({ category }: { category: CategoryRecord }) {
             />
             {state.fieldErrors.name && <p className="mt-2 text-sm text-red-700 dark:text-red-300">{state.fieldErrors.name}</p>}
           </div>
-          <div>
-            <label className="text-sm font-semibold text-[var(--ink)]" htmlFor={`category-color-${category.id}`}>
-              分類色
-            </label>
-            <select
-              className="mt-2 h-10 w-full rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)] px-3 text-sm text-[var(--ink)] outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10"
-              defaultValue={category.colorKey}
-              id={`category-color-${category.id}`}
-              name="colorKey"
-            >
-              {CATEGORY_COLORS.map((color) => <option key={color} value={color}>{colorLabels[color]}</option>)}
-            </select>
-          </div>
           <button className="secondary-button w-full md:w-auto" disabled={isPending} type="submit">
             <Icon name="check" size={16} />
             {isPending ? "保存中…" : "変更を保存"}
           </button>
         </div>
+        <div className="mt-4">
+          <CategoryColorPicker
+            defaultColor={category.colorKey}
+            error={state.fieldErrors.colorKey}
+            idPrefix={`category-color-${category.id}`}
+            wide
+          />
+        </div>
         <Feedback message={state.message} status={state.status} />
       </form>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--hairline-soft)] pt-4">
         <p className="flex items-center gap-2 text-xs text-[var(--muted)]">
-          <span className={`size-2 rounded-full ${colorClasses[category.colorKey]}`} />
+          <span
+            aria-hidden="true"
+            className="size-2 rounded-full"
+            data-testid={`saved-category-color-${category.colorKey}`}
+            style={{ backgroundColor: color.value }}
+          />
           {category.memoCount}件のメモ
         </p>
         <OrganizationDeleteButton
@@ -129,15 +181,11 @@ export function CategoryManager({ categories }: { categories: CategoryRecord[] }
           {state.fieldErrors.name && <p className="mt-2 text-sm text-red-700 dark:text-red-300">{state.fieldErrors.name}</p>}
         </div>
         <div className="mt-4">
-          <label className="text-sm font-semibold text-[var(--ink)]" htmlFor="new-category-color">分類色</label>
-          <select
-            className="mt-2 h-10 w-full rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)] px-3 text-sm text-[var(--ink)] outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10"
-            defaultValue="blue"
-            id="new-category-color"
-            name="colorKey"
-          >
-            {CATEGORY_COLORS.map((color) => <option key={color} value={color}>{colorLabels[color]}</option>)}
-          </select>
+          <CategoryColorPicker
+            defaultColor="blue"
+            error={state.fieldErrors.colorKey}
+            idPrefix="new-category-color"
+          />
         </div>
         <Feedback message={state.message} status={state.status} />
         <button className="primary-button mt-5 w-full" disabled={isPending} type="submit">

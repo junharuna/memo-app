@@ -31,6 +31,10 @@ const categoryInsertGrantMigrationPath = join(
   process.cwd(),
   "supabase/migrations/20260810203000_grant_memo_category_insert.sql",
 );
+const categoryColorsMigrationPath = join(
+  process.cwd(),
+  "supabase/migrations/20260810210000_expand_category_colors.sql",
+);
 
 it("メモテーブルを所有権付きで作成しINSERTだけを許可する", () => {
   const sql = readFileSync(migrationPath, "utf8");
@@ -118,5 +122,28 @@ it("メモ作成関数へカテゴリ列だけのINSERT権限を追加する", (
   );
   expect(sql).not.toMatch(/grant insert[^;]+\bid\b/i);
   expect(sql).not.toMatch(/grant insert[^;]+\bupdated_at\b/i);
+  expect(sql).not.toMatch(/\bto anon\b/i);
+});
+
+it("既存カテゴリを保持したまま分類色のCHECK制約を10色へ拡張する", () => {
+  const sql = readFileSync(categoryColorsMigrationPath, "utf8");
+
+  expect(sql).toMatch(/drop constraint categories_color_key_valid/i);
+  expect(sql).toMatch(/add constraint categories_color_key_valid/i);
+  for (const color of [
+    "blue",
+    "sky",
+    "cyan",
+    "teal",
+    "lime",
+    "yellow",
+    "orange",
+    "rose",
+    "pink",
+    "violet",
+  ]) {
+    expect(sql).toContain(`'${color}'`);
+  }
+  expect(sql).not.toMatch(/\b(update|delete from)\s+public\.categories\b/i);
   expect(sql).not.toMatch(/\bto anon\b/i);
 });

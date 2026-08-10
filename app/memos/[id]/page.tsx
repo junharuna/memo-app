@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { MarkdownContent } from "@/components/memos/markdown-content";
 import { MemoDeleteButton } from "@/components/memos/memo-delete-button";
 import { Icon } from "@/components/ui/icon";
+import { getCategoryColorPresentation } from "@/lib/memos/category-colors";
 import { formatMemoDate } from "@/lib/memos/format";
 import { isValidMemoId } from "@/lib/memos/id";
 import { getMemoForCurrentUser } from "@/lib/memos/queries";
@@ -114,14 +115,14 @@ export default async function MemoDetailPage({ params }: MemoDetailPageProps) {
                 href={`/memos?category=${memo.category.id}`}
               >
                 <span
-                  className={`size-2 rounded-full ${
-                    memo.category.colorKey === "orange"
-                      ? "bg-[#ff9f56]"
-                      : memo.category.colorKey === "violet"
-                        ? "bg-[#a67cf7]"
-                        : "bg-[#5e8bff]"
-                  }`}
+                  className="size-2 rounded-full"
                   aria-hidden="true"
+                  data-category-color={memo.category.colorKey}
+                  style={{
+                    backgroundColor: getCategoryColorPresentation(
+                      memo.category.colorKey,
+                    ).value,
+                  }}
                 />
                 {memo.category.name}
               </Link>

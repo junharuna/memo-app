@@ -1,8 +1,14 @@
 export const CATEGORY_NAME_MAX_LENGTH = 50;
 export const TAG_NAME_MAX_LENGTH = 30;
-export const CATEGORY_COLORS = ["blue", "orange", "violet"] as const;
+export {
+  CATEGORY_COLORS,
+  isCategoryColor,
+  type CategoryColor,
+} from "@/lib/memos/category-colors";
 
-export type CategoryColor = (typeof CATEGORY_COLORS)[number];
+import {
+  isCategoryColor,
+} from "@/lib/memos/category-colors";
 
 type CategoryFieldErrors = {
   colorKey?: string;
@@ -15,10 +21,6 @@ type TagFieldErrors = {
 
 function characterCount(value: string) {
   return Array.from(value).length;
-}
-
-export function isCategoryColor(value: string): value is CategoryColor {
-  return CATEGORY_COLORS.some((color) => color === value);
 }
 
 export function validateCategoryInput(nameInput: string, colorInput: string) {

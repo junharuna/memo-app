@@ -4,6 +4,7 @@ import { AuthControls } from "@/components/auth/auth-controls";
 import { NavigationLink } from "@/components/layout/navigation-link";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { ToastProvider } from "@/components/ui/toast";
+import { getCategoryColorPresentation } from "@/lib/memos/category-colors";
 import type { CategoryRecord } from "@/lib/memos/organization-queries";
 
 type AppShellProps = {
@@ -26,12 +27,6 @@ const navigationItems: NavigationItem[] = [
   { icon: "archive", label: "アーカイブ", href: "/?view=archive" },
   { icon: "trash", label: "ゴミ箱", href: "/?view=trash" },
 ];
-
-function categoryDotClass(colorKey: CategoryRecord["colorKey"]) {
-  if (colorKey === "orange") return "bg-[#ff9f56]";
-  if (colorKey === "violet") return "bg-[#a67cf7]";
-  return "bg-[#5e8bff]";
-}
 
 function Brand() {
   return (
@@ -111,7 +106,16 @@ function Sidebar({ categories }: { categories: CategoryRecord[] }) {
                 className="flex h-9 items-center gap-3 rounded-lg px-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--nav-hover)] hover:text-[var(--ink)]"
                 href={`/memos?category=${category.id}`}
               >
-                <span className={`size-2 rounded-full ${categoryDotClass(category.colorKey)}`} aria-hidden="true" />
+                <span
+                  className="size-2 rounded-full"
+                  aria-hidden="true"
+                  data-category-color={category.colorKey}
+                  style={{
+                    backgroundColor: getCategoryColorPresentation(
+                      category.colorKey,
+                    ).value,
+                  }}
+                />
                 <span className="min-w-0 flex-1 truncate">{category.name}</span>
                 <span className="text-[10px] tabular-nums text-[var(--muted-soft)]">
                   {category.memoCount}

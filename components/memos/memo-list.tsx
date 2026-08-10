@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
+import { getCategoryColorPresentation } from "@/lib/memos/category-colors";
 import { createMemoExcerpt } from "@/lib/memos/excerpt";
 import { formatMemoDate } from "@/lib/memos/format";
 import type { MemoListResult, MemoRecord } from "@/lib/memos/queries";
@@ -18,18 +19,9 @@ type MemoListProps = {
 function MemoCard({ memo }: { memo: MemoRecord }) {
   const excerpt = createMemoExcerpt(memo.content);
   const tags = memo.tags ?? [];
-  const categoryColorClass =
-    memo.category?.colorKey === "orange"
-      ? "bg-[#ff9f56]"
-      : memo.category?.colorKey === "violet"
-        ? "bg-[#a67cf7]"
-        : "bg-[#5e8bff]";
-  const accentClass =
-    memo.category?.colorKey === "orange"
-      ? "memo-accent-orange"
-      : memo.category?.colorKey === "violet"
-        ? "memo-accent-violet"
-        : "memo-accent-blue";
+  const categoryColor = memo.category
+    ? getCategoryColorPresentation(memo.category.colorKey)
+    : getCategoryColorPresentation("blue");
 
   return (
     <article className="memo-card group flex h-72 flex-col">
@@ -38,7 +30,14 @@ function MemoCard({ memo }: { memo: MemoRecord }) {
         className="absolute inset-0 z-10 rounded-[20px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
         href={`/memos/${memo.id}`}
       />
-      <div className={`memo-icon ${accentClass}`} aria-hidden="true">
+      <div
+        className="memo-icon"
+        aria-hidden="true"
+        style={{
+          backgroundColor: categoryColor.tint,
+          color: categoryColor.value,
+        }}
+      >
         <Icon name="fileText" size={20} />
       </div>
       <div className="relative mt-5">
@@ -65,7 +64,12 @@ function MemoCard({ memo }: { memo: MemoRecord }) {
         )}
       </div>
       <footer className="relative mt-auto flex items-center border-t border-[var(--hairline-soft)] pt-4 text-[11px] text-[var(--muted-soft)]">
-        <span className={`mr-2 size-1.5 rounded-full ${categoryColorClass}`} aria-hidden="true" />
+        <span
+          className="mr-2 size-1.5 rounded-full"
+          aria-hidden="true"
+          data-testid={`memo-category-color-${memo.category?.colorKey ?? "blue"}`}
+          style={{ backgroundColor: categoryColor.value }}
+        />
         <span className="max-w-24 truncate">{memo.category?.name ?? "未分類"}</span>
         <span className="mx-2">·</span>
         <time dateTime={memo.updated_at}>{formatMemoDate(memo.updated_at)}</time>

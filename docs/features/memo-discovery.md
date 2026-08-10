@@ -20,15 +20,16 @@
 
 ### 1.1 現行調査の基準点
 
-2026-08-10にSupabase MCPで接続先を再確認し、PostgreSQL 17.6へ本書どおりの組織化スキーマ、RLS、`pg_trgm`、検索／原子的保存関数を適用した。マイグレーションは `supabase/migrations/20260810190000_create_memo_organization.sql`、`20260810200000_add_memo_discovery_functions.sql`、`20260810203000_grant_memo_category_insert.sql` で管理し、生成型も同期している。既存メモはカテゴリなし・タグなしのまま保持した。
+2026-08-10にSupabase MCPで接続先を再確認し、PostgreSQL 17.6へ本書どおりの組織化スキーマ、RLS、`pg_trgm`、検索／原子的保存関数を適用した。マイグレーションは `supabase/migrations/20260810190000_create_memo_organization.sql`、`20260810200000_add_memo_discovery_functions.sql`、`20260810203000_grant_memo_category_insert.sql`、`20260810210000_expand_category_colors.sql` で管理し、生成型も同期している。既存メモとカテゴリを保持したまま分類色の制約を10色へ拡張した。
 
 ### 1.2 実装結果
 
 - `/categories` と `/tags` で、所有者単位の作成、編集、件数表示、確認付き削除を実装した。
+- カテゴリ作成／編集では、名称と色見本を併記した10色のラジオグループから分類色を選択し、同じ色をホーム、一覧、詳細、サイドバーへ一貫して反映する。
 - メモ作成／編集はカテゴリ1件とタグ複数件をDB関数内で原子的に保存し、一覧カード、詳細、編集初期値へ反映する。
 - `/memos` は本文キーワード、カテゴリ／未分類、複数タグAND、24件ページングをURLから復元し、条件の個別解除、全解除、件数、初期空とは異なる一致0件状態を表示する。
 - ヘッダー検索、実カテゴリと件数を使うサイドバー、モバイルの確認ダイアログ式フィルタを実ルートへ接続した。
-- Jest 129件、型チェック、Lint、プロダクションビルド、Supabase Security／Performance Advisors、認証済みPlaywrightの主要導線を確認した。Advisorsの未使用インデックス情報は導入直後かつ小規模データのため想定内であり、削除判断は代表データでの計測後に行う。
+- Jest 132件、型チェック、Lint、プロダクションビルド、Supabase Security／Performance Advisors、認証済みPlaywrightの主要導線を確認した。Advisorsの未使用インデックス情報は導入直後かつ小規模データのため想定内であり、削除判断は代表データでの計測後に行う。
 - 1ユーザー10,000件相当のp95計測は、接続先へ大量データを恒久投入しない検証環境を準備してから実施する。これは機能の利用可否を妨げない継続ハードニング項目とする。
 
 ## 2. ゴールと対象外
@@ -99,7 +100,7 @@ Markdownソースが正本であるため、見出し、リンクテキスト、
 | --- | --- | --- |
 | CAT-01 | Must | 認証済みユーザーは自分のカテゴリを作成、名称／分類色を変更、削除できる。 |
 | CAT-02 | Must | カテゴリ名はtrim後1〜50文字とし、同一ユーザー内で大文字小文字を無視して一意にする。 |
-| CAT-03 | Must | 分類色はDesign Systemの `blue`、`orange`、`violet` から選ぶ。色だけでカテゴリを識別させず、必ず名称を併記する。 |
+| CAT-03 | Must | 分類色はDesign Systemの `blue`、`sky`、`cyan`、`teal`、`lime`、`yellow`、`orange`、`rose`、`pink`、`violet` から選ぶ。選択肢には名称と実際の色見本を併記し、選択状態を色だけに依存させない。 |
 | CAT-04 | Must | メモ作成／編集時に、自分のカテゴリを1件選択するか「カテゴリなし」を選べる。 |
 | CAT-05 | Must | カテゴリで一覧を絞り込める。「未分類」も絞り込み条件として選べる。 |
 | CAT-06 | Must | カテゴリ削除前に確認画面を表示し、対象メモ件数と「メモは削除されず未分類になる」ことを明記する。 |
@@ -242,7 +243,7 @@ erDiagram
 | `id` | `uuid` | PK、`gen_random_uuid()` |
 | `owner_id` | `uuid` | NOT NULL、`auth.users(id) on delete cascade` |
 | `name` | `text` | NOT NULL、保存値がtrim済みの1〜50文字 |
-| `color_key` | `text` | NOT NULL、`blue / orange / violet` のCHECK |
+| `color_key` | `text` | NOT NULL、Design Systemで定義した10色のCHECK |
 | `created_at` | `timestamptz` | NOT NULL、`now()` |
 | `updated_at` | `timestamptz` | NOT NULL、`now()`、更新トリガー |
 
@@ -395,7 +396,7 @@ search_memos(
 
 - URL解析: 空値、Unicode空白、100文字境界、9キーワード、不正UUID、重複タグ、`none`、不正ページ
 - 検索: 日本語、英字の大小、複数語AND、`%`／`_`／`\\`、一致0件、DB失敗
-- カテゴリ: 作成、重複、長さ、色、割り当て解除、削除確認、削除失敗
+- カテゴリ: 作成、重複、長さ、10色の選択肢と色見本、割り当て解除、削除確認、削除失敗
 - タグ: 作成、先頭 `#` の正規化、`C#` の許可、重複、複数選択、全タグAND、差し替え失敗
 - 一覧: 条件表示、個別／全解除、ページリンクへの条件引き継ぎ、カードの最大2タグと `+N`
 - 権限結果: unauthenticated、not found、query errorを正常な空状態と区別する

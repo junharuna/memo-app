@@ -7,7 +7,7 @@ it("カードへカテゴリと最大2タグを表示し、Markdown本文はレ�
       result={{
         memos: [
           {
-            category: { colorKey: "violet", id: "category-1", name: "アイデア" },
+            category: { colorKey: "cyan", id: "category-1", name: "アイデア" },
             content: "# 見出し\n\n**本文**",
             created_at: "2026-08-09T01:00:00.000Z",
             id: "11111111-1111-4111-8111-111111111111",
@@ -30,6 +30,9 @@ it("カードへカテゴリと最大2タグを表示し、Markdown本文はレ�
   expect(screen.getByText("#企画")).toBeInTheDocument();
   expect(screen.getByText("+1")).toBeInTheDocument();
   expect(screen.getByText("アイデア")).toBeInTheDocument();
+  expect(screen.getByTestId("memo-category-color-cyan")).toHaveStyle({
+    backgroundColor: "#2fb7c4",
+  });
   expect(screen.queryByText("#後で")).not.toBeInTheDocument();
   expect(document.querySelector("article h1")).not.toBeInTheDocument();
   expect(document.querySelector("article strong")).not.toBeInTheDocument();

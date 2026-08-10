@@ -2,8 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { MemoList } from "@/components/memos/memo-list";
 import { Icon, type IconName } from "@/components/ui/icon";
+import { getCategoryColorPresentation } from "@/lib/memos/category-colors";
 import {
-  type CategoryRecord,
   type OrganizationResult,
   listOrganizationForCurrentUser,
 } from "@/lib/memos/organization-queries";
@@ -225,16 +225,6 @@ function RecentMemos({ result }: { result: Exclude<MemoListResult, { status: "un
   );
 }
 
-function categoryAccentClasses(colorKey: CategoryRecord["colorKey"]) {
-  if (colorKey === "orange") {
-    return "bg-orange-500/12 text-orange-600 dark:text-orange-300";
-  }
-  if (colorKey === "violet") {
-    return "bg-violet-500/12 text-violet-600 dark:text-violet-300";
-  }
-  return "bg-blue-500/12 text-blue-600 dark:text-blue-300";
-}
-
 function CategorySummary({
   result,
 }: {
@@ -262,25 +252,31 @@ function CategorySummary({
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-3">
-          {result.categories.map((category) => (
-          <Link
-            aria-label={`${category.name} ${category.memoCount}件のメモ`}
-            className="category-card"
-            href={`/memos?category=${category.id}`}
-            key={category.id}
-          >
-            <span
-              className={`flex size-10 items-center justify-center rounded-xl ${categoryAccentClasses(category.colorKey)}`}
-            >
-              <Icon name="folder" size={19} />
-            </span>
-            <span className="text-left">
-              <span className="block text-sm font-semibold text-[var(--ink)]">{category.name}</span>
-              <span className="mt-0.5 block text-[11px] text-[var(--muted-soft)]">{category.memoCount}件のメモ</span>
-            </span>
-            <Icon className="ml-auto text-[var(--muted-soft)]" name="chevronRight" size={16} />
-          </Link>
-        ))}
+          {result.categories.map((category) => {
+            const color = getCategoryColorPresentation(category.colorKey);
+
+            return (
+              <Link
+                aria-label={`${category.name} ${category.memoCount}件のメモ`}
+                className="category-card"
+                href={`/memos?category=${category.id}`}
+                key={category.id}
+              >
+                <span
+                  className="flex size-10 items-center justify-center rounded-xl"
+                  data-category-color={category.colorKey}
+                  style={{ backgroundColor: color.tint, color: color.value }}
+                >
+                  <Icon name="folder" size={19} />
+                </span>
+                <span className="text-left">
+                  <span className="block text-sm font-semibold text-[var(--ink)]">{category.name}</span>
+                  <span className="mt-0.5 block text-[11px] text-[var(--muted-soft)]">{category.memoCount}件のメモ</span>
+                </span>
+                <Icon className="ml-auto text-[var(--muted-soft)]" name="chevronRight" size={16} />
+              </Link>
+            );
+          })}
         </div>
       )}
     </section>
