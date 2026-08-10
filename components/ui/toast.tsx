@@ -43,6 +43,10 @@ const redirectToasts = {
     message: "メモを更新しました。",
     tone: "success",
   },
+  "memo-deleted": {
+    message: "メモを削除しました。",
+    tone: "success",
+  },
   "signed-out": {
     message: "サインアウトしました。",
     tone: "success",

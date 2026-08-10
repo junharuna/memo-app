@@ -61,6 +61,7 @@ it.each([
   ["signed-up", "サインアップしました。"],
   ["signed-in", "サインインしました。"],
   ["memo-updated", "メモを更新しました。"],
+  ["memo-deleted", "メモを削除しました。"],
 ])("%s のリダイレクト結果を通知する", (toastKey, message) => {
   window.history.replaceState({}, "", `/?toast=${toastKey}`);
 

@@ -15,6 +15,10 @@ const updatePolicyMigrationPath = join(
   process.cwd(),
   "supabase/migrations/20260810120000_enable_memo_updates.sql",
 );
+const deletePolicyMigrationPath = join(
+  process.cwd(),
+  "supabase/migrations/20260810150000_enable_memo_deletes.sql",
+);
 
 it("メモテーブルを所有権付きで作成しINSERTだけを許可する", () => {
   const sql = readFileSync(migrationPath, "utf8");
@@ -50,5 +54,15 @@ it("認証済みユーザーが自分のメモのタイトルと本文だけを�
   expect(sql).toMatch(/before update of title, content on public\.memos/i);
   expect(sql).toMatch(/new\.updated_at = now\(\)/i);
   expect(sql).not.toMatch(/grant update[^;]+owner_id/i);
+  expect(sql).not.toMatch(/\bto anon\b/i);
+});
+
+it("認証済みユーザーが自分のメモだけを削除できるようにする", () => {
+  const sql = readFileSync(deletePolicyMigrationPath, "utf8");
+
+  expect(sql).toMatch(/grant delete on table public\.memos to authenticated/i);
+  expect(sql).toMatch(
+    /for delete[\s\S]+to authenticated[\s\S]+using \(\(select auth\.uid\(\)\) = owner_id\)/i,
+  );
   expect(sql).not.toMatch(/\bto anon\b/i);
 });

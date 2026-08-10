@@ -16,6 +16,10 @@ jest.mock("../../lib/memos/queries", () => ({
   getMemoForCurrentUser: jest.fn(),
 }));
 
+jest.mock("../../components/memos/memo-delete-button", () => ({
+  MemoDeleteButton: () => <button type="button">メモを削除</button>,
+}));
+
 const mockGetMemo = jest.mocked(getMemoForCurrentUser);
 const mockNotFound = jest.mocked(notFound);
 const mockRedirect = jest.mocked(redirect);
@@ -50,6 +54,7 @@ it("所有するメモのMarkdown本文を安全に表示する", async () => {
     "href",
     `/memos/${memoId}/edit`,
   );
+  expect(screen.getByRole("button", { name: "メモを削除" })).toBeInTheDocument();
 });
 
 it("不正なIDと所有していないメモは404にする", async () => {

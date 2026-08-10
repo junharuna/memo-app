@@ -33,7 +33,7 @@ Keep `.env.local` untracked; document variables in `.env.example`. Only the URL 
 
 ## Product Direction & Current Status
 
-TagNote is intended to become a personal memo application for capturing Markdown notes and organizing them with categories and tags. The public home page and passwordless authentication flow are implemented; unauthenticated users receive the public shell and cannot access memo controls. Memo creation, listing, detail display, and manual editing are backed by Supabase for authenticated users. The remaining navigation, search, profile, category, tag, favorite, archive, and trash data and controls are still presentation-only samples or placeholders unless their behavior is covered by tests and backed by application data. Preserve the shared application shell in `components/layout/app-shell.tsx` as routes are added.
+TagNote is intended to become a personal memo application for capturing Markdown notes and organizing them with categories and tags. The public home page and passwordless authentication flow are implemented; unauthenticated users receive the public shell and cannot access memo controls. Memo creation, listing, detail display, manual editing, and permanent deletion are backed by Supabase for authenticated users. The remaining navigation, search, profile, category, tag, favorite, archive, and trash data and controls are still presentation-only samples or placeholders unless their behavior is covered by tests and backed by application data. Preserve the shared application shell in `components/layout/app-shell.tsx` as routes are added.
 
 ### Implemented Memo Scope
 
@@ -41,16 +41,17 @@ TagNote is intended to become a personal memo application for capturing Markdown
 - Listing: `/` loads the current user's three most recently updated memos from Supabase, and `/memos` loads the complete list in descending `updated_at` order. A “show all” link connects the two views. Cards link to their detail routes, keep a uniform height, and show a plain-text excerpt without rendering Markdown. Empty and query-error states are implemented.
 - Detail display: `/memos/[id]` validates the memo ID, loads only a memo owned by the current user, and renders its Markdown with the shared safe renderer. Missing or inaccessible memos return not found, and query failures show a retry path.
 - Editing: `/memos/[id]/edit` loads the current user's saved title and Markdown source into the shared editor and preview. Successful updates return to the detail view, and owner-scoped UPDATE RLS plus column-level grants prevent changes to other users' memos or ownership fields.
+- Deletion: `/memos/[id]` provides a destructive action with an explicit, keyboard-accessible confirmation dialog. Confirmed deletion revalidates memo lists, returns to `/memos` with success feedback, and owner-scoped DELETE RLS prevents deleting another user's memo.
 - Markdown safety: Markdown source remains canonical, CommonMark/GFM and soft line breaks are supported, raw HTML is skipped, and external links use safe `rel` attributes.
-- Database security: the `memos` table, ownership constraints, validation constraints, indexes, automatic `updated_at` maintenance, column-limited UPDATE grants, and owner-scoped RLS policies for INSERT, SELECT, and UPDATE are managed through versioned Supabase migrations.
-- Not yet implemented: autosave, deletion, favorites, archive/trash workflows, categories, tags, search, filtering, and user-selectable sorting.
+- Database security: the `memos` table, ownership constraints, validation constraints, indexes, automatic `updated_at` maintenance, column-limited UPDATE grants, and owner-scoped RLS policies for INSERT, SELECT, UPDATE, and DELETE are managed through versioned Supabase migrations.
+- Not yet implemented: autosave, favorites, archive/trash workflows, categories, tags, search, filtering, and user-selectable sorting.
 
 The product should remain focused, responsive, and accessible. Follow Apple-inspired interaction principles: clear hierarchy, restrained decoration, generous spacing, immediate feedback, keyboard support, reduced-motion support, and first-class light and dark appearances. Do not copy Apple assets or interfaces verbatim.
 
 ## Planned Product Capabilities
 
 - Authentication: add sign-up, sign-in, sign-out, protected routes, and account recovery with Supabase Auth. Keep anonymous and authenticated states explicit, and redirect safely without accepting unvalidated return URLs.
-- Memo lifecycle: creation, read, and manual editing flows are complete. Next, let each user autosave, favorite, archive, move to trash, restore, and permanently delete only their own memos. Destructive actions require clear confirmation and error feedback.
+- Memo lifecycle: creation, read, manual editing, and permanent deletion flows are complete. Next, let each user autosave, favorite, archive, move to trash, and restore only their own memos. Destructive actions require clear confirmation and error feedback.
 - Markdown authoring: the shared creation/edit editor, live preview, and rendered detail view are complete. Continue preserving the Markdown source as canonical, sanitizing rendered output, disallowing unsafe HTML by default, and covering XSS-sensitive inputs as autosave is added.
 - Organization: support user-owned categories and tags, including category assignment, many-to-many tagging, and filtering. Deleting a category or tag must not silently delete its memos.
 - Discovery: implement scoped full-text search, sorting, recent notes, favorites, archives, and trash views. Search and filters must never expose another user's data.
@@ -60,8 +61,8 @@ The product should remain focused, responsive, and accessible. Follow Apple-insp
 ## Delivery Plan
 
 1. Foundation: maintain the implemented responsive application shell, design tokens, metadata, accessibility baseline, and representative UI tests.
-2. Authentication and schema: the authenticated memo schema, ownership constraints, indexes, and INSERT/SELECT/UPDATE RLS policies are complete. Profiles, categories, tags, memo-tag relationships, and the policies required by future destructive memo mutations remain pending.
-3. Core memo flow: authenticated creation, listing, read/detail, and manual editing flows are complete with server authorization and explicit failure handling. Deletion remains pending.
+2. Authentication and schema: the authenticated memo schema, ownership constraints, indexes, and INSERT/SELECT/UPDATE/DELETE RLS policies are complete. Profiles, categories, tags, memo-tag relationships, and the policies required by future organization workflows remain pending.
+3. Core memo flow: authenticated creation, listing, read/detail, manual editing, and permanent deletion flows are complete with server authorization, confirmation, and explicit failure handling.
 4. Markdown: creation and edit-time authoring and preview plus safe detail rendering are complete with formatting and unsafe-HTML regression coverage. Autosave status remains pending.
 5. Organization and discovery: connect categories, tags, favorites, archive, trash, search, filtering, and sorting to persisted user data.
 6. Product hardening: add recovery and empty states, responsive browser coverage, accessibility checks, performance measurement, observability, and end-to-end tests for critical journeys.

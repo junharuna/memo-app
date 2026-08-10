@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { MarkdownContent } from "@/components/memos/markdown-content";
+import { MemoDeleteButton } from "@/components/memos/memo-delete-button";
 import { Icon } from "@/components/ui/icon";
 import { formatMemoDate } from "@/lib/memos/format";
 import { isValidMemoId } from "@/lib/memos/id";
@@ -73,13 +74,16 @@ export default async function MemoDetailPage({ params }: MemoDetailPageProps) {
           <Icon className="rotate-180" name="chevronRight" size={16} />
           メモ一覧へ戻る
         </Link>
-        <Link
-          className="secondary-button"
-          href={`/memos/${id}/edit`}
-        >
-          <Icon name="edit" size={17} />
-          メモを編集
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            className="secondary-button"
+            href={`/memos/${id}/edit`}
+          >
+            <Icon name="edit" size={17} />
+            メモを編集
+          </Link>
+          <MemoDeleteButton memoId={id} memoTitle={memo.title} />
+        </div>
       </div>
 
       <header className="mt-5 border-b border-[var(--hairline-soft)] pb-6 sm:pb-8">
