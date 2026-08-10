@@ -50,11 +50,13 @@ The product should remain focused, responsive, and accessible. Follow Apple-insp
 
 ## Planned Product Capabilities
 
+Detailed requirements, architecture, delivery phases, and acceptance criteria for memo body search, category classification, and tag filtering are defined in `docs/features/memo-discovery.md`. The related search and data-model decisions are recorded in `docs/adr/0001-memo-discovery-data-and-search.md`.
+
 - Authentication: add sign-up, sign-in, sign-out, protected routes, and account recovery with Supabase Auth. Keep anonymous and authenticated states explicit, and redirect safely without accepting unvalidated return URLs.
 - Memo lifecycle: creation, read, manual editing, and permanent deletion flows are complete. Next, let each user autosave, favorite, archive, move to trash, and restore only their own memos. Destructive actions require clear confirmation and error feedback.
 - Markdown authoring: the shared creation/edit editor, live preview, and rendered detail view are complete. Continue preserving the Markdown source as canonical, sanitizing rendered output, disallowing unsafe HTML by default, and covering XSS-sensitive inputs as autosave is added.
 - Organization: support user-owned categories and tags, including category assignment, many-to-many tagging, and filtering. Deleting a category or tag must not silently delete its memos.
-- Discovery: implement scoped full-text search, sorting, recent notes, favorites, archives, and trash views. Search and filters must never expose another user's data.
+- Discovery: implement owner-scoped Markdown body keyword search as specified in `docs/features/memo-discovery.md`, then sorting, recent notes, favorites, archives, and trash views. Search and filters must never expose another user's data.
 - Responsive UX: keep the desktop sidebar and mobile navigation useful as real routes replace placeholders. Include loading, empty, error, offline/network-failure, and success states for every data-backed workflow.
 - Account experience: replace sample profile data with authenticated user data and provide settings needed for profile and account management.
 
