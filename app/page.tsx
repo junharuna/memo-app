@@ -3,18 +3,17 @@ import { redirect } from "next/navigation";
 import { MemoList } from "@/components/memos/memo-list";
 import { Icon, type IconName } from "@/components/ui/icon";
 import {
+  type CategoryRecord,
+  type OrganizationResult,
+  listOrganizationForCurrentUser,
+} from "@/lib/memos/organization-queries";
+import {
   type MemoListResult,
   listMemosForCurrentUser,
 } from "@/lib/memos/queries";
 import { getAuthState } from "@/lib/supabase/auth";
 
 const RECENT_MEMO_LIMIT = 3;
-
-const categories = [
-  { name: "仕事", count: 10, color: "#5e8bff", tint: "rgba(94, 139, 255, 0.12)" },
-  { name: "個人", count: 8, color: "#ff9f56", tint: "rgba(255, 159, 86, 0.12)" },
-  { name: "アイデア", count: 6, color: "#a67cf7", tint: "rgba(166, 124, 247, 0.12)" },
-];
 
 const publicFeatures: Array<{
   description: string;
@@ -226,49 +225,81 @@ function RecentMemos({ result }: { result: Exclude<MemoListResult, { status: "un
   );
 }
 
-function CategorySummary() {
+function categoryAccentClasses(colorKey: CategoryRecord["colorKey"]) {
+  if (colorKey === "orange") {
+    return "bg-orange-500/12 text-orange-600 dark:text-orange-300";
+  }
+  if (colorKey === "violet") {
+    return "bg-violet-500/12 text-violet-600 dark:text-violet-300";
+  }
+  return "bg-blue-500/12 text-blue-600 dark:text-blue-300";
+}
+
+function CategorySummary({
+  result,
+}: {
+  result: Exclude<OrganizationResult, { status: "unauthenticated" }>;
+}) {
   return (
     <section id="categories" className="mt-11" aria-labelledby="categories-title">
       <div className="mb-4 flex items-center justify-between">
         <h2 id="categories-title" className="section-title">カテゴリ</h2>
-        <button className="text-button" type="button">
+        <Link className="text-button" href="/categories">
           管理する
           <Icon name="chevronRight" size={15} />
-        </button>
+        </Link>
       </div>
-      <div className="grid gap-3 sm:grid-cols-3">
-        {categories.map((category) => (
-          <button
+      {result.status === "error" ? (
+        <div className="rounded-2xl border border-red-500/20 bg-red-500/8 p-5 text-sm text-red-700 dark:text-red-300" role="alert">
+          カテゴリを読み込めませんでした。ページを再読み込みしてください。
+        </div>
+      ) : result.categories.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-[var(--hairline)] bg-[var(--surface-raised)] p-5">
+          <p className="text-sm text-[var(--muted)]">カテゴリはまだありません。</p>
+          <Link className="secondary-button mt-4" href="/categories">
+            カテゴリを作成
+          </Link>
+        </div>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-3">
+          {result.categories.map((category) => (
+          <Link
+            aria-label={`${category.name} ${category.memoCount}件のメモ`}
             className="category-card"
-            id={`category-${category.name}`}
-            key={category.name}
-            type="button"
+            href={`/memos?category=${category.id}`}
+            key={category.id}
           >
             <span
-              className="flex size-10 items-center justify-center rounded-xl"
-              style={{ background: category.tint, color: category.color }}
+              className={`flex size-10 items-center justify-center rounded-xl ${categoryAccentClasses(category.colorKey)}`}
             >
               <Icon name="folder" size={19} />
             </span>
             <span className="text-left">
               <span className="block text-sm font-semibold text-[var(--ink)]">{category.name}</span>
-              <span className="mt-0.5 block text-[11px] text-[var(--muted-soft)]">{category.count}件のメモ</span>
+              <span className="mt-0.5 block text-[11px] text-[var(--muted-soft)]">{category.memoCount}件のメモ</span>
             </span>
             <Icon className="ml-auto text-[var(--muted-soft)]" name="chevronRight" size={16} />
-          </button>
+          </Link>
         ))}
-      </div>
+        </div>
+      )}
     </section>
   );
 }
 
-function MemoDashboard({ memoResult }: { memoResult: Exclude<MemoListResult, { status: "unauthenticated" }> }) {
+function MemoDashboard({
+  memoResult,
+  organizationResult,
+}: {
+  memoResult: Exclude<MemoListResult, { status: "unauthenticated" }>;
+  organizationResult: Exclude<OrganizationResult, { status: "unauthenticated" }>;
+}) {
   return (
     <div className="mx-auto w-full max-w-[1480px] px-4 py-7 sm:px-6 sm:py-9 lg:px-8 lg:py-10 xl:px-10">
       <PageHeading />
       <Overview />
       <RecentMemos result={memoResult} />
-      <CategorySummary />
+      <CategorySummary result={organizationResult} />
     </div>
   );
 }
@@ -280,13 +311,22 @@ export default async function Home() {
     return <PublicHome />;
   }
 
-  const memoResult = await listMemosForCurrentUser({
-    limit: RECENT_MEMO_LIMIT,
-  });
+  const [memoResult, organizationResult] = await Promise.all([
+    listMemosForCurrentUser({ limit: RECENT_MEMO_LIMIT }),
+    listOrganizationForCurrentUser(),
+  ]);
 
-  if (memoResult.status === "unauthenticated") {
+  if (
+    memoResult.status === "unauthenticated" ||
+    organizationResult.status === "unauthenticated"
+  ) {
     redirect("/signin");
   }
 
-  return <MemoDashboard memoResult={memoResult} />;
+  return (
+    <MemoDashboard
+      memoResult={memoResult}
+      organizationResult={organizationResult}
+    />
+  );
 }

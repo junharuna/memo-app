@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { MemoForm } from "./memo-form";
+import { listOrganizationForCurrentUser } from "@/lib/memos/organization-queries";
 import { getAuthState } from "@/lib/supabase/auth";
 
 export const metadata: Metadata = {
@@ -12,6 +14,11 @@ export default async function NewMemoPage() {
   const { isAuthenticated } = await getAuthState();
 
   if (!isAuthenticated) {
+    redirect("/signin");
+  }
+
+  const organization = await listOrganizationForCurrentUser();
+  if (organization.status === "unauthenticated") {
     redirect("/signin");
   }
 
@@ -27,7 +34,25 @@ export default async function NewMemoPage() {
         </p>
       </header>
 
-      <MemoForm />
+      {organization.status === "error" ? (
+        <div
+          className="mt-8 rounded-[20px] border border-red-500/20 bg-red-500/8 p-5 text-red-700 dark:text-red-300"
+          role="alert"
+        >
+          <h2 className="text-base font-semibold">分類を読み込めませんでした</h2>
+          <p className="mt-2 text-sm leading-6">
+            カテゴリとタグを取得できませんでした。通信状態を確認してください。
+          </p>
+          <Link className="secondary-button mt-4" href="/memos/new">
+            もう一度試す
+          </Link>
+        </div>
+      ) : (
+        <MemoForm
+          categories={organization.categories}
+          tags={organization.tags}
+        />
+      )}
     </div>
   );
 }

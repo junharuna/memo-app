@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import Home from "@/app/page";
 import { AppShell } from "@/components/layout/app-shell";
+import { listOrganizationForCurrentUser } from "@/lib/memos/organization-queries";
 import { listMemosForCurrentUser } from "@/lib/memos/queries";
 import { getAuthState } from "@/lib/supabase/auth";
 
@@ -26,9 +27,22 @@ jest.mock("../lib/supabase/auth", () => ({
 jest.mock("../lib/memos/queries", () => ({
   listMemosForCurrentUser: jest.fn(),
 }));
+jest.mock("../lib/memos/organization-queries", () => ({
+  listOrganizationForCurrentUser: jest.fn(),
+}));
 
 const mockGetAuthState = jest.mocked(getAuthState);
 const mockListMemos = jest.mocked(listMemosForCurrentUser);
+const mockListOrganization = jest.mocked(listOrganizationForCurrentUser);
+
+const storedCategories = [
+  {
+    colorKey: "blue" as const,
+    id: "55555555-5555-4555-8555-555555555555",
+    memoCount: 2,
+    name: "実データカテゴリ",
+  },
+];
 
 const storedMemos = [
   {
@@ -67,6 +81,11 @@ async function renderHome(isAuthenticated = false) {
     status: "success",
     memos: storedMemos.slice(0, 3),
   });
+  mockListOrganization.mockResolvedValue({
+    categories: storedCategories,
+    status: "success",
+    tags: [],
+  });
   const page = await Home();
 
   return render(
@@ -92,7 +111,7 @@ describe("Home", () => {
     expect(screen.getAllByRole("link", { name: "アカウントを作成" })).not.toHaveLength(0);
 
     expect(screen.queryByRole("heading", { level: 1, name: "すべてのメモ" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("searchbox", { name: "メモを検索" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("searchbox", { name: "メモの本文を検索" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "新しいメモを作成" })).not.toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "メインナビゲーション" })).not.toBeInTheDocument();
     expect(screen.queryAllByRole("article")).toHaveLength(0);
@@ -102,7 +121,8 @@ describe("Home", () => {
     await renderHome(true);
 
     expect(screen.getByRole("heading", { level: 1, name: "ホーム" })).toBeInTheDocument();
-    expect(screen.getByRole("searchbox", { name: "メモを検索" })).toBeInTheDocument();
+    expect(screen.getByRole("searchbox", { name: "メモの本文を検索" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "タグ" })).toHaveAttribute("href", "/tags");
     expect(screen.getAllByRole("link", { name: "新しいメモを作成" })).not.toHaveLength(0);
     expect(screen.getByRole("navigation", { name: "メインナビゲーション" })).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "TagNote ホーム" })).not.toHaveLength(0);
@@ -129,6 +149,11 @@ describe("Home", () => {
     expect(document.querySelector("article ul")).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
     expect(screen.queryByText("プロダクトアイデア")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "実データカテゴリ 2件のメモ" })).toHaveAttribute(
+      "href",
+      "/memos?category=55555555-5555-4555-8555-555555555555",
+    );
+    expect(screen.queryByText("仕事")).not.toBeInTheDocument();
     expect(mockListMemos).toHaveBeenCalledWith({ limit: 3 });
   });
 

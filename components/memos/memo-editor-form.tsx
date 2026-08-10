@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import { MarkdownContent } from "@/components/memos/markdown-content";
 import { Icon } from "@/components/ui/icon";
@@ -11,6 +12,10 @@ import {
   MEMO_CONTENT_MAX_LENGTH,
   MEMO_TITLE_MAX_LENGTH,
 } from "@/lib/memos/validation";
+import type {
+  CategoryRecord,
+  TagRecord,
+} from "@/lib/memos/organization-queries";
 
 type MemoEditorAction = (
   previousState: MemoFormState,
@@ -19,12 +24,16 @@ type MemoEditorAction = (
 
 type MemoEditorFormProps = {
   action: MemoEditorAction;
+  categories?: CategoryRecord[];
   formLabel: string;
+  initialCategoryId?: string | null;
   initialContent?: string;
+  initialTagIds?: string[];
   initialTitle?: string;
   pendingLabel: string;
   resetAfterSuccess?: boolean;
   submitLabel: string;
+  tags?: TagRecord[];
 };
 
 type MemoFormFieldsProps = Omit<
@@ -39,12 +48,16 @@ type MemoFormFieldsProps = Omit<
 function MemoFormFields({
   formAction,
   formLabel,
+  categories = [],
+  initialCategoryId = null,
   initialContent = "",
+  initialTagIds = [],
   initialTitle = "",
   isPending,
   pendingLabel,
   state,
   submitLabel,
+  tags = [],
 }: MemoFormFieldsProps) {
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
@@ -132,6 +145,84 @@ function MemoFormFields({
               {state.fieldErrors.content}
             </p>
           )}
+        </div>
+
+        <div className="mt-6 border-t border-[var(--hairline-soft)] pt-5">
+          <div className="flex items-center justify-between gap-3">
+            <label
+              className="text-sm font-semibold text-[var(--ink)]"
+              htmlFor="memo-category"
+            >
+              カテゴリ
+            </label>
+            <Link className="text-button" href="/categories">
+              カテゴリを管理
+            </Link>
+          </div>
+          <select
+            aria-describedby={
+              state.fieldErrors.categoryId ? "memo-category-error" : undefined
+            }
+            aria-invalid={state.fieldErrors.categoryId ? "true" : undefined}
+            className="mt-2 h-10 w-full rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)] px-3 text-sm text-[var(--ink)] outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10"
+            defaultValue={initialCategoryId ?? ""}
+            id="memo-category"
+            name="categoryId"
+          >
+            <option value="">カテゴリなし</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          {state.fieldErrors.categoryId && (
+            <p
+              className="mt-2 text-sm text-red-700 dark:text-red-300"
+              id="memo-category-error"
+            >
+              {state.fieldErrors.categoryId}
+            </p>
+          )}
+
+          <fieldset className="mt-5">
+            <div className="flex items-center justify-between gap-3">
+              <legend className="text-sm font-semibold text-[var(--ink)]">
+                タグ
+              </legend>
+              <Link className="text-button" href="/tags">
+                タグを管理
+              </Link>
+            </div>
+            {tags.length > 0 ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {tags.map((tag) => (
+                  <label
+                    className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--hairline)] bg-[var(--chip)] px-3 text-sm text-[var(--muted)] transition has-checked:border-blue-500/30 has-checked:text-[var(--ink)]"
+                    key={tag.id}
+                  >
+                    <input
+                      defaultChecked={initialTagIds.includes(tag.id)}
+                      className="size-4 accent-blue-600"
+                      name="tagIds"
+                      type="checkbox"
+                      value={tag.id}
+                    />
+                    #{tag.name}
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
+                タグはまだありません。タグ管理から作成できます。
+              </p>
+            )}
+            {state.fieldErrors.tagIds && (
+              <p className="mt-2 text-sm text-red-700 dark:text-red-300" role="alert">
+                {state.fieldErrors.tagIds}
+              </p>
+            )}
+          </fieldset>
         </div>
 
         {state.message && (

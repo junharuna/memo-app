@@ -4,8 +4,10 @@ import { AuthControls } from "@/components/auth/auth-controls";
 import { NavigationLink } from "@/components/layout/navigation-link";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { ToastProvider } from "@/components/ui/toast";
+import type { CategoryRecord } from "@/lib/memos/organization-queries";
 
 type AppShellProps = {
+  categories?: CategoryRecord[];
   children: ReactNode;
   isAuthenticated?: boolean;
 };
@@ -20,16 +22,16 @@ type NavigationItem = {
 const navigationItems: NavigationItem[] = [
   { activePath: "/memos", icon: "inbox", label: "すべてのメモ", href: "/memos" },
   { icon: "star", label: "お気に入り", href: "/?view=favorites" },
-  { icon: "tag", label: "タグ", href: "/?view=tags" },
+  { activePath: "/tags", icon: "tag", label: "タグ", href: "/tags" },
   { icon: "archive", label: "アーカイブ", href: "/?view=archive" },
   { icon: "trash", label: "ゴミ箱", href: "/?view=trash" },
 ];
 
-const folders = [
-  { label: "仕事", color: "bg-[#5e8bff]" },
-  { label: "個人", color: "bg-[#ff9f56]" },
-  { label: "アイデア", color: "bg-[#a67cf7]" },
-];
+function categoryDotClass(colorKey: CategoryRecord["colorKey"]) {
+  if (colorKey === "orange") return "bg-[#ff9f56]";
+  if (colorKey === "violet") return "bg-[#a67cf7]";
+  return "bg-[#5e8bff]";
+}
 
 function Brand() {
   return (
@@ -67,7 +69,7 @@ function NewMemoButton({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function Sidebar() {
+function Sidebar({ categories }: { categories: CategoryRecord[] }) {
   return (
     <aside className="hidden w-[272px] shrink-0 border-r border-[var(--hairline)] bg-[var(--sidebar)] lg:flex lg:flex-col">
       <div className="flex h-20 items-center px-7">
@@ -93,27 +95,39 @@ function Sidebar() {
           <p className="text-[11px] font-semibold tracking-[0.08em] text-[var(--muted-soft)] uppercase">
             カテゴリ
           </p>
-          <button
-            aria-label="カテゴリを追加"
+          <Link
+            aria-label="カテゴリを管理"
             className="flex size-7 items-center justify-center rounded-lg text-[var(--muted-soft)] transition hover:bg-[var(--nav-hover)] hover:text-[var(--ink)]"
-            type="button"
+            href="/categories"
           >
             <Icon name="plus" size={15} />
-          </button>
+          </Link>
         </div>
-        <ul className="space-y-0.5">
-          {folders.map((folder) => (
-            <li key={folder.label}>
+        {categories.length > 0 ? (
+          <ul className="space-y-0.5">
+            {categories.map((category) => (
+            <li key={category.id}>
               <Link
                 className="flex h-9 items-center gap-3 rounded-lg px-2 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--nav-hover)] hover:text-[var(--ink)]"
-                href={`/#category-${folder.label}`}
+                href={`/memos?category=${category.id}`}
               >
-                <span className={`size-2 rounded-full ${folder.color}`} aria-hidden="true" />
-                {folder.label}
+                <span className={`size-2 rounded-full ${categoryDotClass(category.colorKey)}`} aria-hidden="true" />
+                <span className="min-w-0 flex-1 truncate">{category.name}</span>
+                <span className="text-[10px] tabular-nums text-[var(--muted-soft)]">
+                  {category.memoCount}
+                </span>
               </Link>
             </li>
           ))}
-        </ul>
+          </ul>
+        ) : (
+          <Link
+            className="flex min-h-9 items-center rounded-lg px-2 text-xs font-medium text-[var(--muted)] hover:bg-[var(--nav-hover)] hover:text-[var(--ink)]"
+            href="/categories"
+          >
+            カテゴリを作成
+          </Link>
+        )}
       </div>
 
       <div className="mt-auto p-4">
@@ -146,18 +160,19 @@ function Header() {
           <Brand />
         </div>
 
-        <label className="search-field ml-auto lg:ml-0">
+        <form action="/memos" className="search-field ml-auto lg:ml-0" role="search">
           <Icon className="shrink-0 text-[var(--muted-soft)]" name="search" size={18} />
           <input
-            aria-label="メモを検索"
+            aria-label="メモの本文を検索"
             className="min-w-0 flex-1 bg-transparent text-sm text-[var(--ink)] outline-none placeholder:text-[var(--muted-soft)]"
-            placeholder="メモを検索"
+            name="q"
+            placeholder="メモの本文を検索"
             type="search"
           />
           <kbd className="hidden rounded-md border border-[var(--hairline)] bg-[var(--surface-raised)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--muted-soft)] sm:inline">
             ⌘ K
           </kbd>
-        </label>
+        </form>
 
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <div className="hidden items-center gap-2 sm:flex">
@@ -206,7 +221,7 @@ function MobileNavigation() {
   const mobileItems: NavigationItem[] = [
     navigationItems[0],
     navigationItems[1],
-    { icon: "folder", label: "カテゴリ", href: "/#categories" },
+    { activePath: "/categories", icon: "folder", label: "カテゴリ", href: "/categories" },
     { icon: "settings", label: "設定", href: "/?view=settings" },
   ];
 
@@ -226,7 +241,11 @@ function MobileNavigation() {
   );
 }
 
-export function AppShell({ children, isAuthenticated = false }: AppShellProps) {
+export function AppShell({
+  categories = [],
+  children,
+  isAuthenticated = false,
+}: AppShellProps) {
   if (!isAuthenticated) {
     return (
       <ToastProvider>
@@ -247,7 +266,7 @@ export function AppShell({ children, isAuthenticated = false }: AppShellProps) {
         <a className="skip-link" href="#main-content">
           メインコンテンツへ移動
         </a>
-        <Sidebar />
+        <Sidebar categories={categories} />
         <div className="min-w-0 flex-1">
           <Header />
           <main id="main-content" className="pb-24 lg:pb-0">

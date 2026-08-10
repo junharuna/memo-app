@@ -10,21 +10,35 @@ type LoadedMemoListResult = Exclude<
 >;
 
 type MemoListProps = {
+  filtered?: boolean;
   result: LoadedMemoListResult;
   retryHref: string;
 };
 
 function MemoCard({ memo }: { memo: MemoRecord }) {
   const excerpt = createMemoExcerpt(memo.content);
+  const tags = memo.tags ?? [];
+  const categoryColorClass =
+    memo.category?.colorKey === "orange"
+      ? "bg-[#ff9f56]"
+      : memo.category?.colorKey === "violet"
+        ? "bg-[#a67cf7]"
+        : "bg-[#5e8bff]";
+  const accentClass =
+    memo.category?.colorKey === "orange"
+      ? "memo-accent-orange"
+      : memo.category?.colorKey === "violet"
+        ? "memo-accent-violet"
+        : "memo-accent-blue";
 
   return (
-    <article className="memo-card group flex h-60 flex-col">
+    <article className="memo-card group flex h-72 flex-col">
       <Link
         aria-label={`${memo.title}を開く`}
         className="absolute inset-0 z-10 rounded-[20px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
         href={`/memos/${memo.id}`}
       />
-      <div className="memo-icon memo-accent-blue" aria-hidden="true">
+      <div className={`memo-icon ${accentClass}`} aria-hidden="true">
         <Icon name="fileText" size={20} />
       </div>
       <div className="relative mt-5">
@@ -35,9 +49,24 @@ function MemoCard({ memo }: { memo: MemoRecord }) {
           {excerpt || "本文はありません。"}
         </p>
       </div>
+      <div className="relative mt-3 flex min-h-7 flex-wrap items-center gap-1.5 overflow-hidden">
+        {tags.slice(0, 2).map((tag) => (
+          <span
+            className="max-w-28 truncate rounded-lg bg-[var(--chip)] px-2 py-1 text-[10px] font-semibold text-[var(--muted)]"
+            key={tag.id}
+          >
+            #{tag.name}
+          </span>
+        ))}
+        {tags.length > 2 && (
+          <span className="rounded-lg bg-[var(--chip)] px-2 py-1 text-[10px] font-semibold text-[var(--muted-soft)]">
+            +{tags.length - 2}
+          </span>
+        )}
+      </div>
       <footer className="relative mt-auto flex items-center border-t border-[var(--hairline-soft)] pt-4 text-[11px] text-[var(--muted-soft)]">
-        <span className="mr-2 size-1.5 rounded-full bg-[#5e8bff]" aria-hidden="true" />
-        <span>更新</span>
+        <span className={`mr-2 size-1.5 rounded-full ${categoryColorClass}`} aria-hidden="true" />
+        <span className="max-w-24 truncate">{memo.category?.name ?? "未分類"}</span>
         <span className="mx-2">·</span>
         <time dateTime={memo.updated_at}>{formatMemoDate(memo.updated_at)}</time>
       </footer>
@@ -82,13 +111,32 @@ function EmptyMemoList() {
   );
 }
 
-export function MemoList({ result, retryHref }: MemoListProps) {
+function EmptyFilteredMemoList() {
+  return (
+    <div className="rounded-[20px] border border-dashed border-[var(--hairline)] bg-[var(--surface-raised)] px-6 py-12 text-center">
+      <span className="memo-icon memo-accent-blue" aria-hidden="true">
+        <Icon name="search" size={20} />
+      </span>
+      <h3 className="mt-4 text-lg font-semibold tracking-[-0.025em] text-[var(--ink)]">
+        条件に一致するメモがありません
+      </h3>
+      <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+        キーワードや絞り込み条件を変えて、もう一度お試しください。
+      </p>
+      <Link className="secondary-button mt-5" href="/memos">
+        条件をクリア
+      </Link>
+    </div>
+  );
+}
+
+export function MemoList({ filtered = false, result, retryHref }: MemoListProps) {
   if (result.status === "error") {
     return <MemoListError retryHref={retryHref} />;
   }
 
   if (result.memos.length === 0) {
-    return <EmptyMemoList />;
+    return filtered ? <EmptyFilteredMemoList /> : <EmptyMemoList />;
   }
 
   return (

@@ -1,17 +1,43 @@
-import type { Tables } from "@/lib/supabase/database.types";
+import type { Json, Tables } from "@/lib/supabase/database.types";
+import {
+  MEMOS_PER_PAGE,
+  parseMemoFilters,
+  type MemoFilters,
+} from "@/lib/memos/filters";
+import {
+  isCategoryColor,
+  type CategoryColor,
+} from "@/lib/memos/organization-validation";
 import { createClient } from "@/lib/supabase/server";
 
-export type MemoRecord = Pick<
+export type MemoCategory = {
+  colorKey: CategoryColor;
+  id: string;
+  name: string;
+};
+
+export type MemoTag = {
+  id: string;
+  name: string;
+};
+
+type MemoBaseRecord = Pick<
   Tables<"memos">,
   "content" | "created_at" | "id" | "title" | "updated_at"
 >;
 
+export type MemoRecord = MemoBaseRecord & {
+  category?: MemoCategory | null;
+  tags?: MemoTag[];
+};
+
 export type MemoListResult =
-  | { status: "success"; memos: MemoRecord[] }
+  | { status: "success"; memos: MemoRecord[]; totalCount?: number }
   | { status: "unauthenticated" }
   | { status: "error" };
 
 type MemoListOptions = {
+  filters?: MemoFilters;
   limit?: number;
 };
 
@@ -21,7 +47,16 @@ export type MemoDetailResult =
   | { status: "unauthenticated" }
   | { status: "error" };
 
-const MEMO_COLUMNS = "id, title, content, created_at, updated_at";
+type DetailQueryRow = MemoBaseRecord & {
+  category: {
+    color_key: string;
+    id: string;
+    name: string;
+  } | null;
+  memo_tags: Array<{
+    tag: { id: string; name: string } | null;
+  }> | null;
+};
 
 async function getAuthorizedClient() {
   const supabase = await createClient();
@@ -32,11 +67,40 @@ async function getAuthorizedClient() {
     if (error) {
       console.error("Memo query authorization failed", error);
     }
-
     return null;
   }
 
   return { ownerId, supabase };
+}
+
+function readTags(value: Json): MemoTag[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((tag) => {
+    if (
+      typeof tag === "object" &&
+      tag !== null &&
+      !Array.isArray(tag) &&
+      typeof tag.id === "string" &&
+      typeof tag.name === "string"
+    ) {
+      return [{ id: tag.id, name: tag.name }];
+    }
+    return [];
+  });
+}
+
+function readCategory(
+  id: string | null,
+  name: string | null,
+  colorKey: string | null,
+): MemoCategory | null {
+  if (!id || !name || !colorKey || !isCategoryColor(colorKey)) {
+    return null;
+  }
+  return { colorKey, id, name };
 }
 
 export async function listMemosForCurrentUser(
@@ -44,27 +108,48 @@ export async function listMemosForCurrentUser(
 ): Promise<MemoListResult> {
   try {
     const authorization = await getAuthorizedClient();
+    if (!authorization) return { status: "unauthenticated" };
 
-    if (!authorization) {
-      return { status: "unauthenticated" };
-    }
-
-    const query = authorization.supabase
-      .from("memos")
-      .select(MEMO_COLUMNS)
-      .eq("owner_id", authorization.ownerId)
-      .order("updated_at", { ascending: false });
-
-    const { data, error } = options.limit
-      ? await query.limit(options.limit)
-      : await query;
+    const filters = options.filters ?? parseMemoFilters();
+    const limit = Math.min(
+      Math.max(options.limit ?? MEMOS_PER_PAGE, 1),
+      MEMOS_PER_PAGE,
+    );
+    const offset = options.limit ? 0 : (filters.page - 1) * MEMOS_PER_PAGE;
+    const { data, error } = await authorization.supabase.rpc("search_memos", {
+      category_filter: filters.categoryId ?? undefined,
+      include_uncategorized: filters.uncategorized,
+      result_limit: limit,
+      result_offset: offset,
+      search_terms: filters.searchTerms,
+      tag_filters: filters.tagIds,
+    });
 
     if (error) {
       console.error("Memo list query failed", error);
       return { status: "error" };
     }
 
-    return { status: "success", memos: data ?? [] };
+    const rows = data ?? [];
+    const memos: MemoRecord[] = rows.map((row) => ({
+      category: readCategory(
+        row.category_id,
+        row.category_name,
+        row.category_color_key,
+      ),
+      content: row.content,
+      created_at: row.created_at,
+      id: row.id,
+      tags: readTags(row.tags),
+      title: row.title,
+      updated_at: row.updated_at,
+    }));
+
+    return {
+      memos,
+      status: "success",
+      totalCount: rows[0]?.total_count ?? 0,
+    };
   } catch (error) {
     console.error("Memo list query failed", error);
     return { status: "error" };
@@ -74,14 +159,13 @@ export async function listMemosForCurrentUser(
 export async function getMemoForCurrentUser(id: string): Promise<MemoDetailResult> {
   try {
     const authorization = await getAuthorizedClient();
-
-    if (!authorization) {
-      return { status: "unauthenticated" };
-    }
+    if (!authorization) return { status: "unauthenticated" };
 
     const { data, error } = await authorization.supabase
       .from("memos")
-      .select(MEMO_COLUMNS)
+      .select(
+        "id, title, content, created_at, updated_at, category:categories!memos_category_owner_fkey(id, name, color_key), memo_tags(tag:tags!memo_tags_tag_owner_fkey(id, name))",
+      )
       .eq("owner_id", authorization.ownerId)
       .eq("id", id)
       .maybeSingle();
@@ -90,12 +174,28 @@ export async function getMemoForCurrentUser(id: string): Promise<MemoDetailResul
       console.error("Memo detail query failed", error);
       return { status: "error" };
     }
+    if (!data) return { status: "not_found" };
 
-    if (!data) {
-      return { status: "not_found" };
-    }
+    const row = data as unknown as DetailQueryRow;
+    const category = row.category
+      ? readCategory(row.category.id, row.category.name, row.category.color_key)
+      : null;
+    const tags = (row.memo_tags ?? []).flatMap(({ tag }) =>
+      tag ? [{ id: tag.id, name: tag.name }] : [],
+    );
 
-    return { status: "success", memo: data };
+    return {
+      memo: {
+        category,
+        content: row.content,
+        created_at: row.created_at,
+        id: row.id,
+        tags,
+        title: row.title,
+        updated_at: row.updated_at,
+      },
+      status: "success",
+    };
   } catch (error) {
     console.error("Memo detail query failed", error);
     return { status: "error" };

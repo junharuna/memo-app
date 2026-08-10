@@ -21,6 +21,29 @@ describe("MemoForm", () => {
     expect(screen.getByRole("button", { name: "メモを保存" })).toBeInTheDocument();
   });
 
+  it("カテゴリを1件、タグを複数選択できる", () => {
+    render(
+      <MemoForm
+        categories={[
+          { colorKey: "blue", id: "category-1", memoCount: 0, name: "仕事" },
+        ]}
+        tags={[
+          { id: "tag-1", memoCount: 0, name: "重要" },
+          { id: "tag-2", memoCount: 0, name: "確認" },
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole("combobox", { name: "カテゴリ" })).toHaveValue("");
+    expect(screen.getByRole("option", { name: "仕事" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "#重要" })).not.toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "#確認" })).not.toBeChecked();
+    expect(screen.getByRole("link", { name: "カテゴリを管理" })).toHaveAttribute(
+      "href",
+      "/categories",
+    );
+  });
+
   it("入力中のGitHub Flavored Markdownを意味のある要素でプレビューする", () => {
     render(<MemoForm />);
 

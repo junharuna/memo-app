@@ -14,8 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          color_key: string
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          color_key?: string
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          color_key?: string
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      memo_tags: {
+        Row: {
+          created_at: string
+          memo_id: string
+          owner_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          memo_id: string
+          owner_id: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          memo_id?: string
+          owner_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memo_tags_memo_owner_fkey"
+            columns: ["owner_id", "memo_id"]
+            isOneToOne: false
+            referencedRelation: "memos"
+            referencedColumns: ["owner_id", "id"]
+          },
+          {
+            foreignKeyName: "memo_tags_tag_owner_fkey"
+            columns: ["owner_id", "tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["owner_id", "id"]
+          },
+        ]
+      }
       memos: {
         Row: {
+          category_id: string | null
           content: string
           created_at: string
           id: string
@@ -24,6 +88,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          category_id?: string | null
           content?: string
           created_at?: string
           id?: string
@@ -32,11 +97,44 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          category_id?: string | null
           content?: string
           created_at?: string
           id?: string
           owner_id?: string
           title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memos_category_owner_fkey"
+            columns: ["owner_id", "category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["owner_id", "id"]
+          },
+        ]
+      }
+      tags: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
           updated_at?: string
         }
         Relationships: []
@@ -46,7 +144,47 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_memo_with_metadata: {
+        Args: {
+          memo_category_id?: string
+          memo_content: string
+          memo_tag_ids?: string[]
+          memo_title: string
+        }
+        Returns: string
+      }
+      search_memos: {
+        Args: {
+          category_filter?: string
+          include_uncategorized?: boolean
+          result_limit?: number
+          result_offset?: number
+          search_terms?: string[]
+          tag_filters?: string[]
+        }
+        Returns: {
+          category_color_key: string
+          category_id: string
+          category_name: string
+          content: string
+          created_at: string
+          id: string
+          tags: Json
+          title: string
+          total_count: number
+          updated_at: string
+        }[]
+      }
+      update_memo_with_metadata: {
+        Args: {
+          memo_category_id?: string
+          memo_content: string
+          memo_id: string
+          memo_tag_ids?: string[]
+          memo_title: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

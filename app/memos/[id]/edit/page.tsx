@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { MemoEditForm } from "./memo-edit-form";
 import { Icon } from "@/components/ui/icon";
 import { isValidMemoId } from "@/lib/memos/id";
+import { listOrganizationForCurrentUser } from "@/lib/memos/organization-queries";
 import { getMemoForCurrentUser } from "@/lib/memos/queries";
 
 export const metadata: Metadata = {
@@ -48,9 +49,15 @@ export default async function MemoEditPage({ params }: MemoEditPageProps) {
     notFound();
   }
 
-  const result = await getMemoForCurrentUser(id);
+  const [result, organization] = await Promise.all([
+    getMemoForCurrentUser(id),
+    listOrganizationForCurrentUser(),
+  ]);
 
-  if (result.status === "unauthenticated") {
+  if (
+    result.status === "unauthenticated" ||
+    organization.status === "unauthenticated"
+  ) {
     redirect("/signin");
   }
 
@@ -58,7 +65,7 @@ export default async function MemoEditPage({ params }: MemoEditPageProps) {
     notFound();
   }
 
-  if (result.status === "error") {
+  if (result.status === "error" || organization.status === "error") {
     return <MemoEditLoadError id={id} />;
   }
 
@@ -84,7 +91,11 @@ export default async function MemoEditPage({ params }: MemoEditPageProps) {
         </Link>
       </header>
 
-      <MemoEditForm memo={result.memo} />
+      <MemoEditForm
+        categories={organization.categories}
+        memo={result.memo}
+        tags={organization.tags}
+      />
     </div>
   );
 }

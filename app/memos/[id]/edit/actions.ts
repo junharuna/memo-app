@@ -24,7 +24,8 @@ export async function updateMemoAction(
   previousState: MemoFormState,
   formData: FormData,
 ): Promise<MemoFormState> {
-  const { content, fieldErrors, title } = readAndValidateMemo(formData);
+  const { categoryId, content, fieldErrors, tagIds, title } =
+    readAndValidateMemo(formData);
 
   if (Object.keys(fieldErrors).length > 0) {
     return {
@@ -58,13 +59,16 @@ export async function updateMemoAction(
       );
     }
 
-    const { data: updatedMemo, error } = await supabase
-      .from("memos")
-      .update({ content, title })
-      .eq("owner_id", ownerId)
-      .eq("id", memoId)
-      .select("id")
-      .maybeSingle();
+    const { data: updatedMemo, error } = await supabase.rpc(
+      "update_memo_with_metadata",
+      {
+        memo_category_id: categoryId ?? undefined,
+        memo_content: content,
+        memo_id: memoId,
+        memo_tag_ids: tagIds,
+        memo_title: title,
+      },
+    );
 
     if (error || !updatedMemo) {
       if (error) {
@@ -86,6 +90,8 @@ export async function updateMemoAction(
 
   revalidatePath("/");
   revalidatePath("/memos");
+  revalidatePath("/categories");
+  revalidatePath("/tags");
   revalidatePath(`/memos/${memoId}`);
   redirect(`/memos/${memoId}?toast=memo-updated`);
 }

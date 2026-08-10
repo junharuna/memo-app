@@ -105,6 +105,39 @@ export default async function MemoDetailPage({ params }: MemoDetailPageProps) {
             </dd>
           </div>
         </dl>
+        {(memo.category || (memo.tags?.length ?? 0) > 0) && (
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            {memo.category && (
+              <Link
+                aria-label={`カテゴリ: ${memo.category.name}`}
+                className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)] px-3 text-sm font-semibold text-[var(--muted)] transition hover:bg-[var(--nav-hover)] hover:text-[var(--ink)]"
+                href={`/memos?category=${memo.category.id}`}
+              >
+                <span
+                  className={`size-2 rounded-full ${
+                    memo.category.colorKey === "orange"
+                      ? "bg-[#ff9f56]"
+                      : memo.category.colorKey === "violet"
+                        ? "bg-[#a67cf7]"
+                        : "bg-[#5e8bff]"
+                  }`}
+                  aria-hidden="true"
+                />
+                {memo.category.name}
+              </Link>
+            )}
+            {memo.tags?.map((tag) => (
+              <Link
+                aria-label={`タグ: ${tag.name}`}
+                className="inline-flex min-h-10 items-center rounded-xl bg-[var(--chip)] px-3 text-sm font-medium text-[var(--muted)] transition hover:text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                href={`/memos?tags=${tag.id}`}
+                key={tag.id}
+              >
+                #{tag.name}
+              </Link>
+            ))}
+          </div>
+        )}
       </header>
 
       <article aria-label={memo.title} className="mt-7 sm:mt-9">

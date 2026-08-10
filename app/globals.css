@@ -623,10 +623,10 @@ a {
     left: 0.75rem;
     width: auto;
     justify-content: flex-start;
-    border-color: var(--hairline);
+    border-color: rgba(59, 130, 246, 0.42);
     background: var(--surface-raised);
     padding: 0 11px;
-    box-shadow: 0 8px 24px rgba(22, 26, 35, 0.12);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08), 0 8px 24px rgba(22, 26, 35, 0.12);
   }
 
   .search-field:focus-within input {

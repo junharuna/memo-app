@@ -8,7 +8,8 @@ export async function createMemoAction(
   previousState: CreateMemoState,
   formData: FormData,
 ): Promise<CreateMemoState> {
-  const { content, fieldErrors, title } = readAndValidateMemo(formData);
+  const { categoryId, content, fieldErrors, tagIds, title } =
+    readAndValidateMemo(formData);
 
   if (Object.keys(fieldErrors).length > 0) {
     return {
@@ -37,14 +38,20 @@ export async function createMemoAction(
       };
     }
 
-    const { error } = await supabase.from("memos").insert({
-      content,
-      owner_id: ownerId,
-      title,
-    });
+    const { data: memoId, error } = await supabase.rpc(
+      "create_memo_with_metadata",
+      {
+        memo_category_id: categoryId ?? undefined,
+        memo_content: content,
+        memo_tag_ids: tagIds,
+        memo_title: title,
+      },
+    );
 
-    if (error) {
-      console.error("Memo creation failed", error);
+    if (error || !memoId) {
+      if (error) {
+        console.error("Memo creation failed", error);
+      }
       return {
         fieldErrors: {},
         message: "メモを保存できませんでした。入力内容はこの画面に残っています。もう一度お試しください。",

@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import MemosPage, { dynamic } from "../../app/memos/page";
+import { listOrganizationForCurrentUser } from "../../lib/memos/organization-queries";
 import { listMemosForCurrentUser } from "../../lib/memos/queries";
 
 const mockRedirect = jest.fn();
@@ -11,8 +12,12 @@ jest.mock("next/navigation", () => ({
 jest.mock("../../lib/memos/queries", () => ({
   listMemosForCurrentUser: jest.fn(),
 }));
+jest.mock("../../lib/memos/organization-queries", () => ({
+  listOrganizationForCurrentUser: jest.fn(),
+}));
 
 const mockListMemos = jest.mocked(listMemosForCurrentUser);
+const mockListOrganization = jest.mocked(listOrganizationForCurrentUser);
 
 const memos = Array.from({ length: 4 }, (_, index) => ({
   id: `${index + 1}`.repeat(8) + "-1111-4111-8111-111111111111",
@@ -23,6 +28,18 @@ const memos = Array.from({ length: 4 }, (_, index) => ({
 }));
 
 describe("MemosPage", () => {
+  beforeEach(() => {
+    mockListOrganization.mockResolvedValue({
+      categories: [
+        { colorKey: "blue", id: "11111111-1111-4111-8111-111111111111", memoCount: 2, name: "仕事" },
+      ],
+      status: "success",
+      tags: [
+        { id: "22222222-2222-4222-8222-222222222222", memoCount: 2, name: "重要" },
+      ],
+    });
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -30,7 +47,7 @@ describe("MemosPage", () => {
   it("保存済みメモを制限せずすべて表示する", async () => {
     mockListMemos.mockResolvedValue({ status: "success", memos });
 
-    render(await MemosPage());
+    render(await MemosPage({ searchParams: Promise.resolve({}) }));
 
     expect(screen.getByRole("heading", { level: 1, name: "すべてのメモ" })).toBeInTheDocument();
     expect(screen.getAllByRole("article")).toHaveLength(4);
@@ -40,7 +57,9 @@ describe("MemosPage", () => {
       "href",
       "/memos/new",
     );
-    expect(mockListMemos).toHaveBeenCalledWith();
+    expect(mockListMemos).toHaveBeenCalledWith({
+      filters: expect.objectContaining({ page: 1, query: "", tagIds: [] }),
+    });
   });
 
   it("認証Cookieに応じてリクエストごとに動的表示する", () => {
@@ -50,8 +69,64 @@ describe("MemosPage", () => {
   it("認証できない場合はサインインへ移動する", async () => {
     mockListMemos.mockResolvedValue({ status: "unauthenticated" });
 
-    await MemosPage();
+    await MemosPage({ searchParams: Promise.resolve({}) });
 
     expect(mockRedirect).toHaveBeenCalledWith("/signin");
+  });
+
+  it("本文、カテゴリ、タグをURLから復元してAND条件で取得する", async () => {
+    mockListMemos.mockResolvedValue({ status: "success", memos: [memos[0]], totalCount: 1 });
+    const categoryId = "11111111-1111-4111-8111-111111111111";
+    const tagId = "22222222-2222-4222-8222-222222222222";
+
+    render(
+      await MemosPage({
+        searchParams: Promise.resolve({
+          category: categoryId,
+          q: "日本語 本文",
+          tags: tagId,
+        }),
+      }),
+    );
+
+    expect(screen.getByRole("searchbox", { name: "メモの本文を検索" })).toHaveValue(
+      "日本語 本文",
+    );
+    expect(
+      screen.getByRole("button", { name: "絞り込み条件を開く" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "カテゴリで絞り込む" })).toHaveValue(
+      categoryId,
+    );
+    expect(screen.getByRole("link", { name: "タグ #重要を解除" })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    expect(
+      screen.getByRole("link", { name: "検索キーワード 日本語 本文を解除" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "カテゴリ 仕事を解除" }),
+    ).toBeInTheDocument();
+    expect(mockListMemos).toHaveBeenCalledWith({
+      filters: expect.objectContaining({
+        categoryId,
+        searchTerms: ["日本語", "本文"],
+        tagIds: [tagId],
+      }),
+    });
+  });
+
+  it("長すぎる検索語はDBへ問い合わせず入力エラーを表示する", async () => {
+    render(
+      await MemosPage({
+        searchParams: Promise.resolve({ q: "あ".repeat(101) }),
+      }),
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "検索キーワードは100文字以内で入力してください。",
+    );
+    expect(mockListMemos).not.toHaveBeenCalled();
   });
 });

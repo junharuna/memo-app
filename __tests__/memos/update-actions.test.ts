@@ -25,12 +25,7 @@ const mockCreateClient = jest.mocked(createClient);
 const mockRevalidatePath = jest.mocked(revalidatePath);
 const mockRedirect = jest.mocked(redirect);
 const mockGetClaims = jest.fn();
-const mockMaybeSingle = jest.fn();
-const mockSelect = jest.fn(() => ({ maybeSingle: mockMaybeSingle }));
-const mockIdEq = jest.fn(() => ({ select: mockSelect }));
-const mockOwnerEq = jest.fn(() => ({ eq: mockIdEq }));
-const mockUpdate = jest.fn(() => ({ eq: mockOwnerEq }));
-const mockFrom = jest.fn(() => ({ update: mockUpdate }));
+const mockRpc = jest.fn();
 
 function createFormData(title: string, content = "") {
   const formData = new FormData();
@@ -44,10 +39,10 @@ beforeEach(() => {
     data: { claims: { sub: "user-123" } },
     error: null,
   });
-  mockMaybeSingle.mockResolvedValue({ data: { id: memoId }, error: null });
+  mockRpc.mockResolvedValue({ data: true, error: null });
   mockCreateClient.mockResolvedValue({
     auth: { getClaims: mockGetClaims },
-    from: mockFrom,
+    rpc: mockRpc,
   } as never);
 });
 
@@ -67,14 +62,13 @@ describe("updateMemoAction", () => {
       ),
     ).rejects.toThrow(`redirect:/memos/${memoId}?toast=memo-updated`);
 
-    expect(mockUpdate).toHaveBeenCalledWith({
-      content,
-      title: "更新タイトル",
+    expect(mockRpc).toHaveBeenCalledWith("update_memo_with_metadata", {
+      memo_category_id: undefined,
+      memo_content: content,
+      memo_id: memoId,
+      memo_tag_ids: [],
+      memo_title: "更新タイトル",
     });
-    expect(mockOwnerEq).toHaveBeenCalledWith("owner_id", "user-123");
-    expect(mockIdEq).toHaveBeenCalledWith("id", memoId);
-    expect(mockSelect).toHaveBeenCalledWith("id");
-    expect(mockMaybeSingle).toHaveBeenCalledTimes(1);
     expect(mockRevalidatePath).toHaveBeenCalledWith("/");
     expect(mockRevalidatePath).toHaveBeenCalledWith("/memos");
     expect(mockRevalidatePath).toHaveBeenCalledWith(`/memos/${memoId}`);
@@ -111,11 +105,11 @@ describe("updateMemoAction", () => {
     expect(result.message).toBe(
       "セッションの有効期限が切れました。もう一度サインインしてください。",
     );
-    expect(mockUpdate).not.toHaveBeenCalled();
+    expect(mockRpc).not.toHaveBeenCalled();
   });
 
   it("所有するメモが見つからない場合は更新失敗を返す", async () => {
-    mockMaybeSingle.mockResolvedValue({ data: null, error: null });
+    mockRpc.mockResolvedValue({ data: false, error: null });
 
     const result = await updateMemoAction(
       memoId,

@@ -1,6 +1,8 @@
 export type MemoFormState = {
   fieldErrors: {
+    categoryId?: string;
     content?: string;
+    tagIds?: string;
     title?: string;
   };
   message: string;

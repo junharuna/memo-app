@@ -38,6 +38,11 @@ it("所有するメモのMarkdown本文を安全に表示する", async () => {
       content: "# 本文見出し\n1行目\n2行目\n\n- [x] 完了\n\n<script>alert(1)</script>",
       created_at: "2026-08-09T01:00:00.000Z",
       updated_at: "2026-08-09T02:00:00.000Z",
+      category: { colorKey: "blue", id: "category-1", name: "仕事" },
+      tags: [
+        { id: "tag-1", name: "重要" },
+        { id: "tag-2", name: "確認" },
+      ],
     },
   });
 
@@ -55,6 +60,14 @@ it("所有するメモのMarkdown本文を安全に表示する", async () => {
     `/memos/${memoId}/edit`,
   );
   expect(screen.getByRole("button", { name: "メモを削除" })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "カテゴリ: 仕事" })).toHaveAttribute(
+    "href",
+    "/memos?category=category-1",
+  );
+  expect(screen.getByRole("link", { name: "タグ: 重要" })).toHaveAttribute(
+    "href",
+    "/memos?tags=tag-1",
+  );
 });
 
 it("不正なIDと所有していないメモは404にする", async () => {

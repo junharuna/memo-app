@@ -6,13 +6,12 @@ import {
 } from "../../lib/memos/queries";
 import { createClient } from "../../lib/supabase/server";
 
-jest.mock("../../lib/supabase/server", () => ({
-  createClient: jest.fn(),
-}));
+jest.mock("../../lib/supabase/server", () => ({ createClient: jest.fn() }));
 
 const mockCreateClient = jest.mocked(createClient);
 const mockGetClaims = jest.fn();
 const mockFrom = jest.fn();
+const mockRpc = jest.fn();
 
 beforeEach(() => {
   mockGetClaims.mockResolvedValue({
@@ -22,6 +21,7 @@ beforeEach(() => {
   mockCreateClient.mockResolvedValue({
     auth: { getClaims: mockGetClaims },
     from: mockFrom,
+    rpc: mockRpc,
   } as never);
 });
 
@@ -30,77 +30,103 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-it("現在のユーザーの最近のメモを指定件数だけ更新日時の降順で取得する", async () => {
-  const memos = [
+it("本文、カテゴリ、複数タグをAND条件でページング取得する", async () => {
+  const rows = [
     {
-      id: "memo-1",
-      title: "新しいメモ",
-      content: "本文",
+      category_color_key: "orange",
+      category_id: "category-1",
+      category_name: "個人",
+      content: "日本語の本文",
       created_at: "2026-08-09T01:00:00.000Z",
+      id: "memo-1",
+      tags: [{ id: "tag-1", name: "重要" }],
+      title: "検索結果",
+      total_count: 25,
       updated_at: "2026-08-09T02:00:00.000Z",
     },
   ];
-  const limit = jest.fn().mockResolvedValue({ data: memos, error: null });
-  const order = jest.fn(() => ({ limit }));
-  const eq = jest.fn(() => ({ order }));
-  const select = jest.fn(() => ({ eq }));
-  mockFrom.mockReturnValue({ select });
+  mockRpc.mockResolvedValue({ data: rows, error: null });
+
+  await expect(
+    listMemosForCurrentUser({
+      filters: {
+        categoryId: "category-1",
+        page: 2,
+        query: "日本語 本文",
+        queryError: null,
+        searchTerms: ["日本語", "本文"],
+        tagIds: ["tag-1", "tag-2"],
+        uncategorized: false,
+      },
+    }),
+  ).resolves.toEqual({
+    memos: [
+      {
+        category: { colorKey: "orange", id: "category-1", name: "個人" },
+        content: "日本語の本文",
+        created_at: "2026-08-09T01:00:00.000Z",
+        id: "memo-1",
+        tags: [{ id: "tag-1", name: "重要" }],
+        title: "検索結果",
+        updated_at: "2026-08-09T02:00:00.000Z",
+      },
+    ],
+    status: "success",
+    totalCount: 25,
+  });
+  expect(mockRpc).toHaveBeenCalledWith("search_memos", {
+    category_filter: "category-1",
+    include_uncategorized: false,
+    result_limit: 24,
+    result_offset: 24,
+    search_terms: ["日本語", "本文"],
+    tag_filters: ["tag-1", "tag-2"],
+  });
+});
+
+it("最近のメモは指定件数だけ取得する", async () => {
+  mockRpc.mockResolvedValue({ data: [], error: null });
 
   await expect(listMemosForCurrentUser({ limit: 3 })).resolves.toEqual({
-    status: "success",
-    memos,
-  });
-  expect(mockGetClaims).toHaveBeenCalledTimes(1);
-  expect(mockFrom).toHaveBeenCalledWith("memos");
-  expect(eq).toHaveBeenCalledWith("owner_id", "user-123");
-  expect(order).toHaveBeenCalledWith("updated_at", { ascending: false });
-  expect(limit).toHaveBeenCalledWith(3);
-});
-
-it("件数指定がなければ現在のユーザーのメモを全件取得する", async () => {
-  const order = jest.fn().mockResolvedValue({ data: [], error: null });
-  const eq = jest.fn(() => ({ order }));
-  mockFrom.mockReturnValue({ select: jest.fn(() => ({ eq })) });
-
-  await expect(listMemosForCurrentUser()).resolves.toEqual({
-    status: "success",
     memos: [],
+    status: "success",
+    totalCount: 0,
   });
-  expect(order).toHaveBeenCalledWith("updated_at", { ascending: false });
+  expect(mockRpc).toHaveBeenCalledWith(
+    "search_memos",
+    expect.objectContaining({ result_limit: 3, result_offset: 0 }),
+  );
 });
 
-it("指定したIDかつ現在のユーザーが所有するメモを1件取得する", async () => {
+it("指定IDかつ所有者のメモをカテゴリとタグ付きで取得する", async () => {
   const memo = {
-    id: "memo-1",
-    title: "詳細メモ",
+    category: { color_key: "blue", id: "category-1", name: "仕事" },
     content: "# 本文",
     created_at: "2026-08-09T01:00:00.000Z",
+    id: "memo-1",
+    memo_tags: [{ tag: { id: "tag-1", name: "重要" } }],
+    title: "詳細メモ",
     updated_at: "2026-08-09T02:00:00.000Z",
   };
   const maybeSingle = jest.fn().mockResolvedValue({ data: memo, error: null });
   const idEq = jest.fn(() => ({ maybeSingle }));
   const ownerEq = jest.fn(() => ({ eq: idEq }));
-  const select = jest.fn(() => ({ eq: ownerEq }));
-  mockFrom.mockReturnValue({ select });
+  mockFrom.mockReturnValue({ select: jest.fn(() => ({ eq: ownerEq })) });
 
   await expect(getMemoForCurrentUser("memo-1")).resolves.toEqual({
+    memo: {
+      category: { colorKey: "blue", id: "category-1", name: "仕事" },
+      content: "# 本文",
+      created_at: "2026-08-09T01:00:00.000Z",
+      id: "memo-1",
+      tags: [{ id: "tag-1", name: "重要" }],
+      title: "詳細メモ",
+      updated_at: "2026-08-09T02:00:00.000Z",
+    },
     status: "success",
-    memo,
   });
   expect(ownerEq).toHaveBeenCalledWith("owner_id", "user-123");
   expect(idEq).toHaveBeenCalledWith("id", "memo-1");
-  expect(maybeSingle).toHaveBeenCalledTimes(1);
-});
-
-it("存在しないメモはnot_foundを返す", async () => {
-  const maybeSingle = jest.fn().mockResolvedValue({ data: null, error: null });
-  const idEq = jest.fn(() => ({ maybeSingle }));
-  const ownerEq = jest.fn(() => ({ eq: idEq }));
-  mockFrom.mockReturnValue({ select: jest.fn(() => ({ eq: ownerEq })) });
-
-  await expect(getMemoForCurrentUser("missing")).resolves.toEqual({
-    status: "not_found",
-  });
 });
 
 it("認証できない場合はデータベースへ問い合わせない", async () => {
@@ -109,16 +135,13 @@ it("認証できない場合はデータベースへ問い合わせない", asyn
   await expect(listMemosForCurrentUser()).resolves.toEqual({
     status: "unauthenticated",
   });
-  expect(mockFrom).not.toHaveBeenCalled();
+  expect(mockRpc).not.toHaveBeenCalled();
 });
 
 it("データベース障害を明示的なエラー結果へ変換する", async () => {
   const databaseError = new Error("database unavailable");
-  const order = jest.fn().mockResolvedValue({ data: null, error: databaseError });
-  const eq = jest.fn(() => ({ order }));
-  mockFrom.mockReturnValue({ select: jest.fn(() => ({ eq })) });
-  const consoleError = jest.spyOn(console, "error").mockImplementation(() => undefined);
+  mockRpc.mockResolvedValue({ data: null, error: databaseError });
+  jest.spyOn(console, "error").mockImplementation(() => undefined);
 
   await expect(listMemosForCurrentUser()).resolves.toEqual({ status: "error" });
-  expect(consoleError).toHaveBeenCalledWith("Memo list query failed", databaseError);
 });

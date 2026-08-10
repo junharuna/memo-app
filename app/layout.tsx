@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppShell } from "@/components/layout/app-shell";
+import { listOrganizationForCurrentUser } from "@/lib/memos/organization-queries";
 import { getAuthState } from "@/lib/supabase/auth";
 import "./globals.css";
 
@@ -29,6 +30,11 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const { isAuthenticated } = await getAuthState();
+  const organization = isAuthenticated
+    ? await listOrganizationForCurrentUser()
+    : null;
+  const categories =
+    organization?.status === "success" ? organization.categories : [];
 
   return (
     <html
@@ -37,7 +43,9 @@ export default async function RootLayout({
       data-scroll-behavior="smooth"
     >
       <body className="min-h-full">
-        <AppShell isAuthenticated={isAuthenticated}>{children}</AppShell>
+        <AppShell categories={categories} isAuthenticated={isAuthenticated}>
+          {children}
+        </AppShell>
       </body>
     </html>
   );

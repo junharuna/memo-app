@@ -10,13 +10,19 @@ jest.mock("../../lib/supabase/server", () => ({
 
 const mockCreateClient = jest.mocked(createClient);
 const mockGetClaims = jest.fn();
-const mockInsert = jest.fn();
-const mockFrom = jest.fn(() => ({ insert: mockInsert }));
+const mockRpc = jest.fn();
 
-function createFormData(title: string, content = "") {
+function createFormData(
+  title: string,
+  content = "",
+  categoryId = "",
+  tagIds: string[] = [],
+) {
   const formData = new FormData();
   formData.set("title", title);
   formData.set("content", content);
+  formData.set("categoryId", categoryId);
+  tagIds.forEach((tagId) => formData.append("tagIds", tagId));
   return formData;
 }
 
@@ -25,10 +31,10 @@ beforeEach(() => {
     data: { claims: { sub: "user-123" } },
     error: null,
   });
-  mockInsert.mockResolvedValue({ error: null });
+  mockRpc.mockResolvedValue({ data: "memo-id", error: null });
   mockCreateClient.mockResolvedValue({
     auth: { getClaims: mockGetClaims },
-    from: mockFrom,
+    rpc: mockRpc,
   } as never);
 });
 
@@ -40,8 +46,13 @@ describe("createMemoAction", () => {
   it("認証済みユーザーを所有者としてMarkdownソースを保存する", async () => {
     const content = "# 見出し\n\n- 項目1\n- 項目2";
 
+    const categoryId = "11111111-1111-4111-8111-111111111111";
+    const tagId = "22222222-2222-4222-8222-222222222222";
     await expect(
-      createMemoAction(initialCreateMemoState, createFormData("  新しいメモ  ", content)),
+      createMemoAction(
+        initialCreateMemoState,
+        createFormData("  新しいメモ  ", content, categoryId, [tagId]),
+      ),
     ).resolves.toEqual({
       fieldErrors: {},
       message: "メモを保存しました。続けて新しいメモを作成できます。",
@@ -49,11 +60,11 @@ describe("createMemoAction", () => {
       submissionId: 1,
     });
     expect(mockGetClaims).toHaveBeenCalledTimes(1);
-    expect(mockFrom).toHaveBeenCalledWith("memos");
-    expect(mockInsert).toHaveBeenCalledWith({
-      content,
-      owner_id: "user-123",
-      title: "新しいメモ",
+    expect(mockRpc).toHaveBeenCalledWith("create_memo_with_metadata", {
+      memo_category_id: categoryId,
+      memo_content: content,
+      memo_tag_ids: [tagId],
+      memo_title: "新しいメモ",
     });
   });
 
@@ -90,11 +101,11 @@ describe("createMemoAction", () => {
       status: "error",
       submissionId: 0,
     });
-    expect(mockInsert).not.toHaveBeenCalled();
+    expect(mockRpc).not.toHaveBeenCalled();
   });
 
   it("データベース障害時は入力内容を保てるエラーを返す", async () => {
-    mockInsert.mockResolvedValue({ error: new Error("database unavailable") });
+    mockRpc.mockResolvedValue({ data: null, error: new Error("database unavailable") });
     const consoleError = jest.spyOn(console, "error").mockImplementation(() => undefined);
 
     await expect(
@@ -109,5 +120,18 @@ describe("createMemoAction", () => {
       "Memo creation failed",
       expect.any(Error),
     );
+  });
+
+  it("不正なカテゴリとタグIDは保存しない", async () => {
+    const result = await createMemoAction(
+      initialCreateMemoState,
+      createFormData("タイトル", "本文", "invalid", ["invalid"]),
+    );
+
+    expect(result.fieldErrors).toEqual({
+      categoryId: "カテゴリを選び直してください。",
+      tagIds: "タグを選び直してください。",
+    });
+    expect(mockRpc).not.toHaveBeenCalled();
   });
 });

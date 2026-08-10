@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { notFound, redirect } from "next/navigation";
 import MemoEditPage from "../../app/memos/[id]/edit/page";
+import { listOrganizationForCurrentUser } from "../../lib/memos/organization-queries";
 import { getMemoForCurrentUser } from "../../lib/memos/queries";
 
 jest.mock("next/navigation", () => ({
@@ -15,6 +16,9 @@ jest.mock("next/navigation", () => ({
 jest.mock("../../lib/memos/queries", () => ({
   getMemoForCurrentUser: jest.fn(),
 }));
+jest.mock("../../lib/memos/organization-queries", () => ({
+  listOrganizationForCurrentUser: jest.fn(),
+}));
 
 jest.mock("../../app/memos/[id]/edit/memo-edit-form", () => ({
   MemoEditForm: ({ memo }: { memo: { title: string } }) => (
@@ -26,6 +30,15 @@ const memoId = "11111111-1111-4111-8111-111111111111";
 const mockGetMemo = jest.mocked(getMemoForCurrentUser);
 const mockNotFound = jest.mocked(notFound);
 const mockRedirect = jest.mocked(redirect);
+const mockListOrganization = jest.mocked(listOrganizationForCurrentUser);
+
+beforeEach(() => {
+  mockListOrganization.mockResolvedValue({
+    categories: [],
+    status: "success",
+    tags: [],
+  });
+});
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -47,6 +60,7 @@ it("所有するメモを編集フォームへ渡す", async () => {
 
   expect(screen.getByRole("heading", { level: 1, name: "メモを編集" })).toBeInTheDocument();
   expect(screen.getByText("編集フォーム: 編集対象")).toBeInTheDocument();
+  expect(mockListOrganization).toHaveBeenCalledTimes(1);
   expect(screen.getByRole("link", { name: "編集をキャンセル" })).toHaveAttribute(
     "href",
     `/memos/${memoId}`,
