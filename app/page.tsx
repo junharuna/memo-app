@@ -147,14 +147,6 @@ function PageHeading() {
         </p>
       </div>
       <div className="flex items-center gap-2">
-        <button
-          aria-label="メモの表示方法を変更"
-          className="secondary-button"
-          type="button"
-        >
-          <Icon name="grid" size={17} />
-          <span className="hidden sm:inline">グリッド</span>
-        </button>
         <Link
           aria-label="新しいメモを作成"
           className="primary-button"
@@ -182,10 +174,13 @@ function Overview() {
         <p className="mt-2 max-w-md text-sm leading-6 text-[#52607d] sm:text-[15px]">
           マークダウンで軽やかに書き始めて、カテゴリやタグはあとから整えられます。
         </p>
-        <button className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#2457c6] transition hover:gap-3" type="button">
+        <Link
+          className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#2457c6] transition hover:gap-3"
+          href="/memos/new"
+        >
           クイックメモを開く
           <Icon name="chevronRight" size={16} />
-        </button>
+        </Link>
       </div>
       <div className="overview-art" aria-hidden="true">
         <span className="overview-orb overview-orb-one" />

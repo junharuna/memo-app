@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { MarkdownContent } from "@/components/memos/markdown-content";
-import { MemoDeleteButton } from "@/components/memos/memo-delete-button";
+import { MemoLifecycleControls } from "@/components/memos/memo-lifecycle-controls";
 import { Icon } from "@/components/ui/icon";
 import { getCategoryColorPresentation } from "@/lib/memos/category-colors";
 import { formatMemoDate } from "@/lib/memos/format";
@@ -64,31 +64,54 @@ export default async function MemoDetailPage({ params }: MemoDetailPageProps) {
   }
 
   const { memo } = result;
+  const backHref = memo.trashedAt
+    ? "/memos?view=trash"
+    : memo.archivedAt
+      ? "/memos?view=archive"
+      : "/memos";
+  const backLabel = memo.trashedAt
+    ? "ゴミ箱へ戻る"
+    : memo.archivedAt
+      ? "アーカイブへ戻る"
+      : "メモ一覧へ戻る";
+  const lifecycleLabel = memo.trashedAt
+    ? "ゴミ箱"
+    : memo.archivedAt
+      ? "アーカイブ"
+      : "MEMO";
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-7 sm:px-6 sm:py-9 lg:px-8 lg:py-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           className="text-button -ml-2 min-h-10 px-2"
-          href="/memos"
+          href={backHref}
         >
           <Icon className="rotate-180" name="chevronRight" size={16} />
-          メモ一覧へ戻る
+          {backLabel}
         </Link>
         <div className="flex flex-wrap items-center gap-2">
-          <Link
-            className="secondary-button"
-            href={`/memos/${id}/edit`}
-          >
-            <Icon name="edit" size={17} />
-            メモを編集
-          </Link>
-          <MemoDeleteButton memoId={id} memoTitle={memo.title} />
+          {!memo.trashedAt && (
+            <Link
+              className="secondary-button"
+              href={`/memos/${id}/edit`}
+            >
+              <Icon name="edit" size={17} />
+              メモを編集
+            </Link>
+          )}
+          <MemoLifecycleControls
+            archivedAt={memo.archivedAt}
+            favoritedAt={memo.favoritedAt}
+            memoId={id}
+            memoTitle={memo.title}
+            trashedAt={memo.trashedAt}
+          />
         </div>
       </div>
 
       <header className="mt-5 border-b border-[var(--hairline-soft)] pb-6 sm:pb-8">
-        <p className="eyebrow">MEMO</p>
+        <p className="eyebrow">{lifecycleLabel}</p>
         <h1 className="mt-2 break-words text-[clamp(2rem,6vw,3.5rem)] font-semibold leading-[1.05] tracking-[-0.06em] text-[var(--ink)]">
           {memo.title}
         </h1>

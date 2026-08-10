@@ -27,8 +27,12 @@ type MemoBaseRecord = Pick<
 >;
 
 export type MemoRecord = MemoBaseRecord & {
+  archivedAt: string | null;
   category?: MemoCategory | null;
+  favoritedAt: string | null;
+  revision: number;
   tags?: MemoTag[];
+  trashedAt: string | null;
 };
 
 export type MemoListResult =
@@ -48,6 +52,7 @@ export type MemoDetailResult =
   | { status: "error" };
 
 type DetailQueryRow = MemoBaseRecord & {
+  archived_at: string | null;
   category: {
     color_key: string;
     id: string;
@@ -56,6 +61,9 @@ type DetailQueryRow = MemoBaseRecord & {
   memo_tags: Array<{
     tag: { id: string; name: string } | null;
   }> | null;
+  favorited_at: string | null;
+  revision: number;
+  trashed_at: string | null;
 };
 
 async function getAuthorizedClient() {
@@ -116,12 +124,14 @@ export async function listMemosForCurrentUser(
       MEMOS_PER_PAGE,
     );
     const offset = options.limit ? 0 : (filters.page - 1) * MEMOS_PER_PAGE;
-    const { data, error } = await authorization.supabase.rpc("search_memos", {
+    const { data, error } = await authorization.supabase.rpc("search_memos_v2", {
       category_filter: filters.categoryId ?? undefined,
       include_uncategorized: filters.uncategorized,
+      memo_view: filters.view,
       result_limit: limit,
       result_offset: offset,
       search_terms: filters.searchTerms,
+      sort_key: filters.sort,
       tag_filters: filters.tagIds,
     });
 
@@ -132,6 +142,7 @@ export async function listMemosForCurrentUser(
 
     const rows = data ?? [];
     const memos: MemoRecord[] = rows.map((row) => ({
+      archivedAt: row.archived_at,
       category: readCategory(
         row.category_id,
         row.category_name,
@@ -139,9 +150,12 @@ export async function listMemosForCurrentUser(
       ),
       content: row.content,
       created_at: row.created_at,
+      favoritedAt: row.favorited_at,
       id: row.id,
+      revision: row.revision,
       tags: readTags(row.tags),
       title: row.title,
+      trashedAt: row.trashed_at,
       updated_at: row.updated_at,
     }));
 
@@ -164,7 +178,7 @@ export async function getMemoForCurrentUser(id: string): Promise<MemoDetailResul
     const { data, error } = await authorization.supabase
       .from("memos")
       .select(
-        "id, title, content, created_at, updated_at, category:categories!memos_category_owner_fkey(id, name, color_key), memo_tags(tag:tags!memo_tags_tag_owner_fkey(id, name))",
+        "id, title, content, created_at, updated_at, archived_at, favorited_at, trashed_at, revision, category:categories!memos_category_owner_fkey(id, name, color_key), memo_tags(tag:tags!memo_tags_tag_owner_fkey(id, name))",
       )
       .eq("owner_id", authorization.ownerId)
       .eq("id", id)
@@ -186,12 +200,16 @@ export async function getMemoForCurrentUser(id: string): Promise<MemoDetailResul
 
     return {
       memo: {
+        archivedAt: row.archived_at,
         category,
         content: row.content,
         created_at: row.created_at,
+        favoritedAt: row.favorited_at,
         id: row.id,
+        revision: row.revision,
         tags,
         title: row.title,
+        trashedAt: row.trashed_at,
         updated_at: row.updated_at,
       },
       status: "success",

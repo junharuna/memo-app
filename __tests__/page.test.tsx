@@ -30,6 +30,9 @@ jest.mock("../lib/memos/queries", () => ({
 jest.mock("../lib/memos/organization-queries", () => ({
   listOrganizationForCurrentUser: jest.fn(),
 }));
+jest.mock("../app/memos/[id]/lifecycle/actions", () => ({
+  mutateMemoLifecycleAction: jest.fn(),
+}));
 
 const mockGetAuthState = jest.mocked(getAuthState);
 const mockListMemos = jest.mocked(listMemosForCurrentUser);
@@ -46,31 +49,47 @@ const storedCategories = [
 
 const storedMemos = [
   {
+    archivedAt: null,
     id: "11111111-1111-4111-8111-111111111111",
     title: "Supabaseのメモ",
     content: "# 本文\n\n**保存済み**の内容",
     created_at: "2026-08-09T01:00:00.000Z",
+    favoritedAt: null,
+    revision: 1,
+    trashedAt: null,
     updated_at: "2026-08-09T02:00:00.000Z",
   },
   {
+    archivedAt: null,
     id: "22222222-2222-4222-8222-222222222222",
     title: "2件目のメモ",
     content: "チェックリスト\n\n- [ ] 確認する",
     created_at: "2026-08-08T01:00:00.000Z",
+    favoritedAt: null,
+    revision: 1,
+    trashedAt: null,
     updated_at: "2026-08-08T02:00:00.000Z",
   },
   {
+    archivedAt: null,
     id: "33333333-3333-4333-8333-333333333333",
     title: "3件目のメモ",
     content: "3件目の本文",
     created_at: "2026-08-07T01:00:00.000Z",
+    favoritedAt: null,
+    revision: 1,
+    trashedAt: null,
     updated_at: "2026-08-07T02:00:00.000Z",
   },
   {
+    archivedAt: null,
     id: "44444444-4444-4444-8444-444444444444",
     title: "4件目のメモ",
     content: "ホームには表示されない本文",
     created_at: "2026-08-06T01:00:00.000Z",
+    favoritedAt: null,
+    revision: 1,
+    trashedAt: null,
     updated_at: "2026-08-06T02:00:00.000Z",
   },
 ];
@@ -124,6 +143,13 @@ describe("Home", () => {
     expect(screen.getByRole("searchbox", { name: "メモの本文を検索" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "タグ" })).toHaveAttribute("href", "/tags");
     expect(screen.getAllByRole("link", { name: "新しいメモを作成" })).not.toHaveLength(0);
+    expect(screen.getByRole("link", { name: "クイックメモを開く" })).toHaveAttribute(
+      "href",
+      "/memos/new",
+    );
+    expect(
+      screen.queryByRole("button", { name: "メモの表示方法を変更" }),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "メインナビゲーション" })).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "TagNote ホーム" })).not.toHaveLength(0);
     expect(screen.getByRole("button", { name: "サインアウト" })).toBeInTheDocument();

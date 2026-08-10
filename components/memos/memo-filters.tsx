@@ -8,6 +8,7 @@ import {
   MEMO_SEARCH_MAX_LENGTH,
   type MemoFilters,
 } from "@/lib/memos/filters";
+import { defaultSortForView } from "@/lib/memos/lifecycle";
 import type {
   CategoryRecord,
   TagRecord,
@@ -30,11 +31,13 @@ function createFilterHref(
         : overrides.categoryId,
     page: 1,
     query: overrides.query === undefined ? filters.query : overrides.query,
+    sort: filters.sort,
     tagIds: overrides.tagIds === undefined ? filters.tagIds : overrides.tagIds,
     uncategorized:
       overrides.uncategorized === undefined
         ? filters.uncategorized
         : overrides.uncategorized,
+    view: filters.view,
   });
 }
 
@@ -56,6 +59,17 @@ function MemoFiltersContent({
   const selectedCategory = categories.find(
     (category) => category.id === filters.categoryId,
   );
+  const clearHref = buildMemoListHref({
+    categoryId: null,
+    page: 1,
+    query: "",
+    sort: defaultSortForView(filters.view),
+    tagIds: [],
+    uncategorized: false,
+    view: filters.view,
+  });
+  const canFilterOrganization = filters.view !== "trash";
+  const canSort = filters.view === "active" || filters.view === "favorites";
 
   return (
     <section
@@ -74,7 +88,7 @@ function MemoFiltersContent({
           メモを絞り込む
         </h2>
         {hasFilters && (
-          <Link className="text-button" href="/memos">
+          <Link className="text-button" href={clearHref}>
             条件をクリア
           </Link>
         )}
@@ -82,9 +96,12 @@ function MemoFiltersContent({
 
       <form
         action="/memos"
-        className="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(12rem,0.4fr)_auto]"
+        className={`mt-4 grid gap-3 ${canSort && canFilterOrganization ? "md:grid-cols-[minmax(0,1fr)_minmax(11rem,0.35fr)_minmax(11rem,0.35fr)_auto]" : canFilterOrganization ? "md:grid-cols-[minmax(0,1fr)_minmax(12rem,0.4fr)_auto]" : "md:grid-cols-[minmax(0,1fr)_auto]"}`}
         role="search"
       >
+        {filters.view !== "active" && (
+          <input name="view" type="hidden" value={filters.view} />
+        )}
         <div>
           <label
             className="mb-1.5 block text-xs font-semibold text-[var(--muted)]"
@@ -126,31 +143,58 @@ function MemoFiltersContent({
           )}
         </div>
 
-        <div>
-          <label
-            className="mb-1.5 block text-xs font-semibold text-[var(--muted)]"
-            htmlFor={`${idPrefix}-memo-category-filter`}
-          >
-            カテゴリ
-          </label>
-          <select
-            aria-label="カテゴリで絞り込む"
-            className="h-10 w-full rounded-xl border border-[var(--hairline)] bg-[var(--surface)] px-3 text-sm text-[var(--ink)] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15"
-            defaultValue={categoryValue}
-            id={`${idPrefix}-memo-category-filter`}
-            name="category"
-          >
-            <option value="">すべてのカテゴリ</option>
-            <option value="none">未分類</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}（{category.memoCount}件）
-              </option>
-            ))}
-          </select>
-        </div>
+        {canSort && (
+          <div>
+            <label
+              className="mb-1.5 block text-xs font-semibold text-[var(--muted)]"
+              htmlFor={`${idPrefix}-memo-sort`}
+            >
+              並び順
+            </label>
+            <select
+              aria-label="メモの並び順"
+              className="h-10 w-full rounded-xl border border-[var(--hairline)] bg-[var(--surface)] px-3 text-sm text-[var(--ink)] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15"
+              defaultValue={filters.sort}
+              id={`${idPrefix}-memo-sort`}
+              name="sort"
+            >
+              {filters.view === "favorites" && (
+                <option value="favorited_desc">お気に入り追加順</option>
+              )}
+              <option value="updated_desc">更新日の新しい順</option>
+              <option value="created_desc">作成日の新しい順</option>
+              <option value="title_asc">タイトル昇順</option>
+            </select>
+          </div>
+        )}
 
-        {filters.tagIds.length > 0 && (
+        {canFilterOrganization && (
+          <div>
+            <label
+              className="mb-1.5 block text-xs font-semibold text-[var(--muted)]"
+              htmlFor={`${idPrefix}-memo-category-filter`}
+            >
+              カテゴリ
+            </label>
+            <select
+              aria-label="カテゴリで絞り込む"
+              className="h-10 w-full rounded-xl border border-[var(--hairline)] bg-[var(--surface)] px-3 text-sm text-[var(--ink)] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15"
+              defaultValue={categoryValue}
+              id={`${idPrefix}-memo-category-filter`}
+              name="category"
+            >
+              <option value="">すべてのカテゴリ</option>
+              <option value="none">未分類</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}（{category.memoCount}件）
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {canFilterOrganization && filters.tagIds.length > 0 && (
           <input name="tags" type="hidden" value={filters.tagIds.join(",")} />
         )}
         <button className="primary-button self-end" type="submit">
@@ -192,7 +236,7 @@ function MemoFiltersContent({
         </div>
       )}
 
-      {tags.length > 0 && (
+      {canFilterOrganization && tags.length > 0 && (
         <div className="mt-5 border-t border-[var(--hairline-soft)] pt-4">
           <p className="text-xs font-semibold text-[var(--muted)]">タグ</p>
           <div className="mt-2 flex flex-wrap gap-2">

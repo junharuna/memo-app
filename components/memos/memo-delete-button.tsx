@@ -26,7 +26,7 @@ export function MemoDeleteButton({ memoId, memoTitle }: MemoDeleteButtonProps) {
         type="button"
       >
         <Icon name="trash" size={17} />
-        メモを削除
+        完全に削除
       </button>
 
       <dialog
@@ -41,7 +41,7 @@ export function MemoDeleteButton({ memoId, memoTitle }: MemoDeleteButtonProps) {
             <Icon name="trash" size={20} />
           </div>
           <h2 className="mt-4 text-xl font-semibold tracking-[-0.03em]" id="memo-delete-title">
-            メモを削除しますか？
+            メモを完全に削除しますか？
           </h2>
           <p
             className="mt-3 break-words text-sm leading-6 text-[var(--muted)]"
@@ -74,7 +74,7 @@ export function MemoDeleteButton({ memoId, memoTitle }: MemoDeleteButtonProps) {
               type="submit"
             >
               <Icon name="trash" size={17} />
-              {isPending ? "削除中…" : "削除を確定"}
+              {isPending ? "削除中…" : "完全削除を確定"}
             </button>
           </div>
         </form>

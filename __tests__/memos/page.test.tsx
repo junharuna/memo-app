@@ -16,6 +16,9 @@ jest.mock("../../lib/supabase/auth", () => ({
 jest.mock("../../lib/memos/organization-queries", () => ({
   listOrganizationForCurrentUser: jest.fn(),
 }));
+jest.mock("../../components/layout/unsaved-changes-guard", () => ({
+  UnsavedChangesGuard: () => null,
+}));
 
 const mockGetAuthState = jest.mocked(getAuthState);
 const mockRedirect = jest.mocked(redirect);

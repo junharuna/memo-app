@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useCallback, useEffect, useRef, useState } from "react";
 import { MarkdownContent } from "@/components/memos/markdown-content";
+import { UnsavedChangesGuard } from "@/components/layout/unsaved-changes-guard";
 import { Icon } from "@/components/ui/icon";
 import {
   initialMemoFormState,
@@ -16,18 +17,30 @@ import type {
   CategoryRecord,
   TagRecord,
 } from "@/lib/memos/organization-queries";
+import type { AutosaveMemoResult } from "@/lib/memos/autosave-state";
 
 type MemoEditorAction = (
   previousState: MemoFormState,
   formData: FormData,
 ) => Promise<MemoFormState>;
 
+type MemoAutosaveAction = (formData: FormData) => Promise<AutosaveMemoResult>;
+
+type MemoEditorSnapshot = {
+  categoryId: string;
+  content: string;
+  tagIds: string[];
+  title: string;
+};
+
 type MemoEditorFormProps = {
   action: MemoEditorAction;
+  autosaveAction?: MemoAutosaveAction;
   categories?: CategoryRecord[];
   formLabel: string;
   initialCategoryId?: string | null;
   initialContent?: string;
+  initialRevision?: number;
   initialTagIds?: string[];
   initialTitle?: string;
   pendingLabel: string;
@@ -46,11 +59,13 @@ type MemoFormFieldsProps = Omit<
 };
 
 function MemoFormFields({
+  autosaveAction,
   formAction,
   formLabel,
   categories = [],
   initialCategoryId = null,
   initialContent = "",
+  initialRevision,
   initialTagIds = [],
   initialTitle = "",
   isPending,
@@ -61,6 +76,166 @@ function MemoFormFields({
 }: MemoFormFieldsProps) {
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
+  const [categoryId, setCategoryId] = useState(initialCategoryId ?? "");
+  const [selectedTagIds, setSelectedTagIds] = useState(
+    () => [...initialTagIds].sort(),
+  );
+  const [revision, setRevision] = useState(initialRevision);
+  const [autosaveStatus, setAutosaveStatus] = useState<
+    "conflict" | "dirty" | "error" | "saved" | "saving" | "trashed"
+  >("saved");
+  const [autosaveMessage, setAutosaveMessage] = useState("");
+  const revisionRef = useRef(initialRevision);
+  const savingRef = useRef(false);
+  const queuedRef = useRef(false);
+  const blockedRef = useRef(false);
+  const allowUnloadRef = useRef(false);
+  const initialSnapshot: MemoEditorSnapshot = {
+    categoryId: initialCategoryId ?? "",
+    content: initialContent,
+    tagIds: [...initialTagIds].sort(),
+    title: initialTitle,
+  };
+  const latestSnapshotRef = useRef(initialSnapshot);
+  const lastSavedKeyRef = useRef(JSON.stringify(initialSnapshot));
+  const saveRef = useRef<(snapshot: MemoEditorSnapshot) => void>(
+    () => undefined,
+  );
+
+  const performAutosave = useCallback(
+    async (snapshot: MemoEditorSnapshot) => {
+      if (!autosaveAction || revisionRef.current === undefined || blockedRef.current) {
+        return;
+      }
+      if (savingRef.current) {
+        queuedRef.current = true;
+        return;
+      }
+      if (!snapshot.title.trim()) {
+        setAutosaveStatus("dirty");
+        return;
+      }
+
+      savingRef.current = true;
+      setAutosaveStatus("saving");
+      const formData = new FormData();
+      formData.set("title", snapshot.title);
+      formData.set("content", snapshot.content);
+      formData.set("expectedRevision", String(revisionRef.current));
+      if (snapshot.categoryId) {
+        formData.set("categoryId", snapshot.categoryId);
+      }
+      snapshot.tagIds.forEach((tagId) => formData.append("tagIds", tagId));
+
+      try {
+        const result = await autosaveAction(formData);
+        if (result.status === "saved") {
+          revisionRef.current = result.revision;
+          setRevision(result.revision);
+          lastSavedKeyRef.current = JSON.stringify(snapshot);
+          if (
+            JSON.stringify(latestSnapshotRef.current) ===
+            lastSavedKeyRef.current
+          ) {
+            setAutosaveMessage("");
+            setAutosaveStatus("saved");
+          } else {
+            queuedRef.current = true;
+          }
+        } else if (result.status === "conflict") {
+          blockedRef.current = true;
+          setAutosaveMessage(result.message);
+          setAutosaveStatus("conflict");
+        } else if (result.status === "trashed") {
+          blockedRef.current = true;
+          setAutosaveMessage(result.message);
+          setAutosaveStatus("trashed");
+        } else {
+          setAutosaveMessage(result.message);
+          setAutosaveStatus("error");
+        }
+      } catch {
+        setAutosaveMessage(
+          "自動保存できませんでした。入力内容はこの画面に残っています。",
+        );
+        setAutosaveStatus("error");
+      } finally {
+        savingRef.current = false;
+        if (queuedRef.current && !blockedRef.current) {
+          queuedRef.current = false;
+          saveRef.current(latestSnapshotRef.current);
+        }
+      }
+    },
+    [autosaveAction],
+  );
+
+  useEffect(() => {
+    saveRef.current = (snapshot) => {
+      void performAutosave(snapshot);
+    };
+  }, [performAutosave]);
+
+  useEffect(() => {
+    const snapshot = {
+      categoryId,
+      content,
+      tagIds: [...selectedTagIds].sort(),
+      title,
+    };
+    latestSnapshotRef.current = snapshot;
+    if (JSON.stringify(snapshot) === lastSavedKeyRef.current) {
+      return;
+    }
+    if (!blockedRef.current) {
+      setAutosaveStatus("dirty");
+    }
+
+    if (!autosaveAction) return;
+
+    const timer = window.setTimeout(() => {
+      saveRef.current(snapshot);
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [autosaveAction, categoryId, content, selectedTagIds, title]);
+
+  useEffect(() => {
+    const shouldWarn = autosaveStatus !== "saved";
+    if (!shouldWarn) return;
+
+    function warnBeforeUnload(event: BeforeUnloadEvent) {
+      if (allowUnloadRef.current) return;
+      event.preventDefault();
+    }
+
+    window.addEventListener("beforeunload", warnBeforeUnload);
+    return () => window.removeEventListener("beforeunload", warnBeforeUnload);
+  }, [autosaveStatus]);
+
+  const autosaveLabel = {
+    conflict: "競合",
+    dirty: "未保存",
+    error: "保存できませんでした",
+    saved: "保存済み",
+    saving: "保存中…",
+    trashed: "保存できませんでした",
+  }[autosaveStatus];
+
+  async function copyCurrentInput() {
+    try {
+      await navigator.clipboard.writeText(`${title}\n\n${content}`);
+      setAutosaveMessage("現在のタイトルと本文をクリップボードへコピーしました。");
+    } catch {
+      setAutosaveMessage(
+        "入力内容をコピーできませんでした。タイトルと本文を手動でコピーしてください。",
+      );
+    }
+  }
+
+  function reloadLatestContent() {
+    allowUnloadRef.current = true;
+    window.location.reload();
+  }
 
   const titleDescriptionId = state.fieldErrors.title
     ? "memo-title-help memo-title-error"
@@ -70,12 +245,21 @@ function MemoFormFields({
     : "memo-content-help";
 
   return (
+    <>
     <form
       action={formAction}
       aria-label={formLabel}
       className="mt-8 grid min-w-0 gap-4 lg:grid-cols-2"
+      data-unsaved-guard-ignore
       noValidate
     >
+      {revision !== undefined && (
+        <input
+          name="expectedRevision"
+          type="hidden"
+          value={revision}
+        />
+      )}
       <section
         aria-labelledby="memo-editor-title"
         className="min-w-0 rounded-[20px] border border-[var(--hairline)] bg-[var(--surface-raised)] p-4 shadow-[0_2px_3px_rgba(20,24,31,0.02),0_12px_30px_rgba(20,24,31,0.025)] sm:p-5"
@@ -84,9 +268,19 @@ function MemoFormFields({
           <h2 className="section-title" id="memo-editor-title">
             メモを書く
           </h2>
-          <span className="rounded-lg bg-[var(--chip)] px-2 py-1 text-[10px] font-semibold text-[var(--muted)]">
-            Markdown
-          </span>
+          <div className="flex items-center gap-2">
+            {autosaveAction && (
+              <span
+                aria-live="polite"
+                className="rounded-lg bg-[var(--chip)] px-2 py-1 text-[10px] font-semibold text-[var(--muted)]"
+              >
+                {autosaveLabel}
+              </span>
+            )}
+            <span className="rounded-lg bg-[var(--chip)] px-2 py-1 text-[10px] font-semibold text-[var(--muted)]">
+              Markdown
+            </span>
+          </div>
         </div>
 
         <div className="mt-5">
@@ -165,9 +359,10 @@ function MemoFormFields({
             }
             aria-invalid={state.fieldErrors.categoryId ? "true" : undefined}
             className="mt-2 h-10 w-full rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)] px-3 text-sm text-[var(--ink)] outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10"
-            defaultValue={initialCategoryId ?? ""}
             id="memo-category"
             name="categoryId"
+            onChange={(event) => setCategoryId(event.target.value)}
+            value={categoryId}
           >
             <option value="">カテゴリなし</option>
             {categories.map((category) => (
@@ -202,9 +397,16 @@ function MemoFormFields({
                     key={tag.id}
                   >
                     <input
-                      defaultChecked={initialTagIds.includes(tag.id)}
+                      checked={selectedTagIds.includes(tag.id)}
                       className="size-4 accent-blue-600"
                       name="tagIds"
+                      onChange={(event) => {
+                        setSelectedTagIds((current) =>
+                          event.target.checked
+                            ? Array.from(new Set([...current, tag.id])).sort()
+                            : current.filter((tagId) => tagId !== tag.id),
+                        );
+                      }}
                       type="checkbox"
                       value={tag.id}
                     />
@@ -238,6 +440,33 @@ function MemoFormFields({
           </p>
         )}
 
+        {autosaveMessage && (
+          <div
+            className="mt-5 rounded-xl border border-red-500/20 bg-red-500/8 px-3 py-2.5 text-sm leading-6 text-red-700 dark:text-red-300"
+            role="alert"
+          >
+            <p>{autosaveMessage}</p>
+            {autosaveStatus === "conflict" && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  className="secondary-button"
+                  onClick={() => void copyCurrentInput()}
+                  type="button"
+                >
+                  現在の入力をコピー
+                </button>
+                <button
+                  className="secondary-button"
+                  onClick={reloadLatestContent}
+                  type="button"
+                >
+                  最新の内容を読み直す
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         <button
           className="primary-button mt-6 w-full disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 sm:w-auto"
           disabled={isPending}
@@ -268,6 +497,8 @@ function MemoFormFields({
         </div>
       </section>
     </form>
+    <UnsavedChangesGuard active={autosaveStatus !== "saved"} />
+    </>
   );
 }
 

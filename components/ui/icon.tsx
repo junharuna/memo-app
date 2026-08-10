@@ -2,7 +2,6 @@ import type { SVGProps } from "react";
 
 export type IconName =
   | "archive"
-  | "bell"
   | "book"
   | "check"
   | "chevronRight"
@@ -10,7 +9,6 @@ export type IconName =
   | "edit"
   | "fileText"
   | "folder"
-  | "grid"
   | "inbox"
   | "logOut"
   | "menu"
@@ -40,12 +38,6 @@ const paths: Record<IconName, React.ReactNode> = {
       <path d="M9 11h6" />
     </>
   ),
-  bell: (
-    <>
-      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
-      <path d="M13.7 21a2 2 0 0 1-3.4 0" />
-    </>
-  ),
   book: (
     <>
       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
@@ -73,14 +65,6 @@ const paths: Record<IconName, React.ReactNode> = {
     </>
   ),
   folder: <path d="M3 5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v9a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3Z" />,
-  grid: (
-    <>
-      <rect width="7" height="7" x="3" y="3" rx="2" />
-      <rect width="7" height="7" x="14" y="3" rx="2" />
-      <rect width="7" height="7" x="3" y="14" rx="2" />
-      <rect width="7" height="7" x="14" y="14" rx="2" />
-    </>
-  ),
   inbox: (
     <>
       <path d="M4 4h16l2 11v5H2v-5Z" />

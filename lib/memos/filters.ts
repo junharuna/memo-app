@@ -1,4 +1,11 @@
 import { isValidMemoId } from "@/lib/memos/id";
+import {
+  defaultSortForView,
+  isMemoSort,
+  isMemoView,
+  type MemoSort,
+  type MemoView,
+} from "@/lib/memos/lifecycle";
 
 export const MEMO_SEARCH_MAX_LENGTH = 100;
 export const MEMO_SEARCH_MAX_TERMS = 8;
@@ -15,13 +22,21 @@ export type MemoFilters = {
   query: string;
   queryError: string | null;
   searchTerms: string[];
+  sort: MemoSort;
   tagIds: string[];
   uncategorized: boolean;
+  view: MemoView;
 };
 
 export type MemoFilterHrefInput = Pick<
   MemoFilters,
-  "categoryId" | "page" | "query" | "tagIds" | "uncategorized"
+  | "categoryId"
+  | "page"
+  | "query"
+  | "sort"
+  | "tagIds"
+  | "uncategorized"
+  | "view"
 >;
 
 function firstValue(value: string | string[] | undefined) {
@@ -56,6 +71,18 @@ export function parseMemoFilters(
 ): MemoFilters {
   const rawQuery = normalizeQuery(firstValue(searchParams.q) ?? "");
   const category = firstValue(searchParams.category);
+  const rawView = firstValue(searchParams.view) ?? "";
+  const view = isMemoView(rawView) ? rawView : "active";
+  const rawSort = firstValue(searchParams.sort) ?? "";
+  const requestedSort = isMemoSort(rawSort) ? rawSort : defaultSortForView(view);
+  const sort =
+    view === "trash"
+      ? "trashed_desc"
+      : view === "archive"
+        ? "archived_desc"
+        : requestedSort === "archived_desc" || requestedSort === "trashed_desc"
+          ? defaultSortForView(view)
+          : requestedSort;
   const searchTerms = rawQuery ? rawQuery.split(" ") : [];
   let queryError: string | null = null;
 
@@ -67,15 +94,21 @@ export function parseMemoFilters(
 
   return {
     categoryId:
-      category && category !== "none" && isValidMemoId(category)
+      view !== "trash" &&
+      category &&
+      category !== "none" &&
+      isValidMemoId(category)
         ? category
         : null,
     page: parsePage(firstValue(searchParams.page)),
     query: rawQuery,
     queryError,
     searchTerms: queryError ? [] : searchTerms,
-    tagIds: parseTagIds(firstValue(searchParams.tags)),
-    uncategorized: category === "none",
+    sort,
+    tagIds:
+      view === "trash" ? [] : parseTagIds(firstValue(searchParams.tags)),
+    uncategorized: view !== "trash" && category === "none",
+    view,
   };
 }
 
@@ -83,19 +116,29 @@ export function buildMemoListHref(input: MemoFilterHrefInput) {
   const entries: Array<[string, string]> = [];
   const query = normalizeQuery(input.query);
 
+  if (input.view !== "active") {
+    entries.push(["view", input.view]);
+  }
+
   if (query) {
     entries.push(["q", query]);
   }
 
-  if (input.uncategorized) {
-    entries.push(["category", "none"]);
-  } else if (input.categoryId) {
-    entries.push(["category", input.categoryId]);
+  if (input.view !== "trash") {
+    if (input.uncategorized) {
+      entries.push(["category", "none"]);
+    } else if (input.categoryId) {
+      entries.push(["category", input.categoryId]);
+    }
+
+    const tagIds = Array.from(new Set(input.tagIds)).sort();
+    if (tagIds.length > 0) {
+      entries.push(["tags", tagIds.join(",")]);
+    }
   }
 
-  const tagIds = Array.from(new Set(input.tagIds)).sort();
-  if (tagIds.length > 0) {
-    entries.push(["tags", tagIds.join(",")]);
+  if (input.sort !== defaultSortForView(input.view)) {
+    entries.push(["sort", input.sort]);
   }
 
   if (input.page > 1) {

@@ -69,6 +69,10 @@ export default async function MemoEditPage({ params }: MemoEditPageProps) {
     return <MemoEditLoadError id={id} />;
   }
 
+  if (result.memo.trashedAt) {
+    notFound();
+  }
+
   return (
     <div className="mx-auto w-full max-w-[1480px] px-4 py-7 sm:px-6 sm:py-9 lg:px-8 lg:py-10 xl:px-10">
       <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">

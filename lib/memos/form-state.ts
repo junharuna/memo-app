@@ -1,10 +1,12 @@
-export type MemoFormState = {
-  fieldErrors: {
+export type MemoFieldErrors = {
     categoryId?: string;
     content?: string;
     tagIds?: string;
     title?: string;
-  };
+};
+
+export type MemoFormState = {
+  fieldErrors: MemoFieldErrors;
   message: string;
   status: "error" | "idle" | "success";
   submissionId: number;

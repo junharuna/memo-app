@@ -6,26 +6,29 @@ import { Icon, type IconName } from "@/components/ui/icon";
 import { ToastProvider } from "@/components/ui/toast";
 import { getCategoryColorPresentation } from "@/lib/memos/category-colors";
 import type { CategoryRecord } from "@/lib/memos/organization-queries";
+import type { UserPreferences } from "@/lib/settings/preferences";
 
 type AppShellProps = {
   categories?: CategoryRecord[];
   children: ReactNode;
   isAuthenticated?: boolean;
+  profile?: Pick<UserPreferences, "displayName" | "email">;
 };
 
 type NavigationItem = {
   activePath?: string;
+  activeView?: "active" | "archive" | "favorites" | "trash";
   icon: IconName;
   label: string;
   href: string;
 };
 
 const navigationItems: NavigationItem[] = [
-  { activePath: "/memos", icon: "inbox", label: "すべてのメモ", href: "/memos" },
-  { icon: "star", label: "お気に入り", href: "/?view=favorites" },
+  { activePath: "/memos", activeView: "active", icon: "inbox", label: "すべてのメモ", href: "/memos" },
+  { activePath: "/memos", activeView: "favorites", icon: "star", label: "お気に入り", href: "/memos?view=favorites" },
   { activePath: "/tags", icon: "tag", label: "タグ", href: "/tags" },
-  { icon: "archive", label: "アーカイブ", href: "/?view=archive" },
-  { icon: "trash", label: "ゴミ箱", href: "/?view=trash" },
+  { activePath: "/memos", activeView: "archive", icon: "archive", label: "アーカイブ", href: "/memos?view=archive" },
+  { activePath: "/memos", activeView: "trash", icon: "trash", label: "ゴミ箱", href: "/memos?view=trash" },
 ];
 
 function Brand() {
@@ -64,7 +67,15 @@ function NewMemoButton({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function Sidebar({ categories }: { categories: CategoryRecord[] }) {
+function Sidebar({
+  categories,
+  profile,
+}: {
+  categories: CategoryRecord[];
+  profile?: Pick<UserPreferences, "displayName" | "email">;
+}) {
+  const displayName = profile?.displayName || "ユーザー";
+  const avatarLabel = Array.from(displayName)[0] ?? "U";
   return (
     <aside className="hidden w-[272px] shrink-0 border-r border-[var(--hairline)] bg-[var(--sidebar)] lg:flex lg:flex-col">
       <div className="flex h-20 items-center px-7">
@@ -137,18 +148,20 @@ function Sidebar({ categories }: { categories: CategoryRecord[] }) {
       <div className="mt-auto p-4">
         <div className="rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)] p-3.5 shadow-[0_1px_1px_rgba(22,26,35,0.02)]">
           <div className="flex items-center gap-3">
-            <span className="avatar">H</span>
+            <span className="avatar" aria-hidden="true">{avatarLabel}</span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-semibold text-[var(--ink)]">Haruna</span>
-              <span className="block truncate text-[11px] text-[var(--muted-soft)]">Personal plan</span>
+              <span className="block truncate text-sm font-semibold text-[var(--ink)]">{displayName}</span>
+              {profile?.email && (
+                <span className="block truncate text-[11px] text-[var(--muted-soft)]">{profile.email}</span>
+              )}
             </span>
-            <button
-              aria-label="アカウントメニューを開く"
+            <Link
+              aria-label="設定を開く"
               className="rounded-lg p-1 text-[var(--muted-soft)] hover:bg-[var(--nav-hover)] hover:text-[var(--ink)]"
-              type="button"
+              href="/settings"
             >
               <Icon name="moreHorizontal" size={17} />
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -173,28 +186,17 @@ function Header() {
             placeholder="メモの本文を検索"
             type="search"
           />
-          <kbd className="hidden rounded-md border border-[var(--hairline)] bg-[var(--surface-raised)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--muted-soft)] sm:inline">
-            ⌘ K
-          </kbd>
         </form>
 
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <div className="hidden items-center gap-2 sm:flex">
-            <button
-              aria-label="通知を見る"
-              className="header-icon-button"
-              type="button"
-            >
-              <Icon name="bell" size={19} />
-              <span className="absolute right-2.5 top-2.5 size-1.5 rounded-full bg-blue-600 ring-2 ring-[var(--surface)]" />
-            </button>
-            <button
+            <Link
               aria-label="設定を開く"
               className="header-icon-button"
-              type="button"
+              href="/settings"
             >
               <Icon name="settings" size={19} />
-            </button>
+            </Link>
           </div>
           <AuthControls
             initialIsAuthenticated
@@ -226,7 +228,7 @@ function MobileNavigation() {
     navigationItems[0],
     navigationItems[1],
     { activePath: "/categories", icon: "folder", label: "カテゴリ", href: "/categories" },
-    { icon: "settings", label: "設定", href: "/?view=settings" },
+    { activePath: "/settings", icon: "settings", label: "設定", href: "/settings" },
   ];
 
   return (
@@ -249,6 +251,7 @@ export function AppShell({
   categories = [],
   children,
   isAuthenticated = false,
+  profile,
 }: AppShellProps) {
   if (!isAuthenticated) {
     return (
@@ -270,7 +273,7 @@ export function AppShell({
         <a className="skip-link" href="#main-content">
           メインコンテンツへ移動
         </a>
-        <Sidebar categories={categories} />
+        <Sidebar categories={categories} profile={profile} />
         <div className="min-w-0 flex-1">
           <Header />
           <main id="main-content" className="pb-24 lg:pb-0">

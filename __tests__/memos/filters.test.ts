@@ -15,8 +15,10 @@ describe("parseMemoFilters", () => {
       query: "日本語 キーワード 検索",
       queryError: null,
       searchTerms: ["日本語", "キーワード", "検索"],
+      sort: "updated_desc",
       tagIds: [],
       uncategorized: false,
+      view: "active",
     });
   });
 
@@ -54,8 +56,37 @@ describe("parseMemoFilters", () => {
       query: "最初",
       queryError: null,
       searchTerms: ["最初"],
+      sort: "updated_desc",
       tagIds: [tagA],
       uncategorized: false,
+      view: "active",
+    });
+  });
+
+  it("ビューと並び順を許可値だけに限定する", () => {
+    expect(
+      parseMemoFilters({ sort: "title_asc", view: "favorites" }),
+    ).toMatchObject({ sort: "title_asc", view: "favorites" });
+    expect(parseMemoFilters({ sort: "invalid", view: "invalid" })).toMatchObject(
+      { sort: "updated_desc", view: "active" },
+    );
+    expect(parseMemoFilters({ sort: "title_asc", view: "trash" })).toMatchObject(
+      { sort: "trashed_desc", view: "trash" },
+    );
+  });
+
+  it("ゴミ箱では仕様外のカテゴリとタグ条件を無視する", () => {
+    expect(
+      parseMemoFilters({
+        category: categoryId,
+        tags: `${tagA},${tagB}`,
+        view: "trash",
+      }),
+    ).toMatchObject({
+      categoryId: null,
+      tagIds: [],
+      uncategorized: false,
+      view: "trash",
     });
   });
 
@@ -76,11 +107,13 @@ describe("buildMemoListHref", () => {
         categoryId,
         page: 2,
         query: "日本語 検索",
+        sort: "title_asc",
         tagIds: [tagB, tagA],
         uncategorized: false,
+        view: "favorites",
       }),
     ).toBe(
-      `/memos?q=${encodeURIComponent("日本語 検索")}&category=${categoryId}&tags=${tagA}%2C${tagB}&page=2`,
+      `/memos?view=favorites&q=${encodeURIComponent("日本語 検索")}&category=${categoryId}&tags=${tagA}%2C${tagB}&sort=title_asc&page=2`,
     );
 
     expect(
@@ -88,9 +121,25 @@ describe("buildMemoListHref", () => {
         categoryId: null,
         page: 1,
         query: "",
+        sort: "updated_desc",
         tagIds: [],
         uncategorized: false,
+        view: "active",
       }),
     ).toBe("/memos");
+  });
+
+  it("ゴミ箱URLにはカテゴリとタグ条件を含めない", () => {
+    expect(
+      buildMemoListHref({
+        categoryId,
+        page: 2,
+        query: "削除予定",
+        sort: "trashed_desc",
+        tagIds: [tagA],
+        uncategorized: false,
+        view: "trash",
+      }),
+    ).toBe(`/memos?view=trash&q=${encodeURIComponent("削除予定")}&page=2`);
   });
 });

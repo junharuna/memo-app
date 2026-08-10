@@ -2,6 +2,14 @@
 
 TagNoteは、Markdownメモをカテゴリとタグで整理するための個人向けノートアプリです。Next.js App Router、TypeScript、Tailwind CSS、Supabaseで構築しています。
 
+## Documentation
+
+- [デザインシステム](./docs/design-system.md)
+- [本文検索・カテゴリ・タグの要件と設計](./docs/features/memo-discovery.md)
+- [ライフサイクル・自動保存・設定の要件と実装記録](./docs/features/memo-lifecycle-autosave-settings.md)
+- [ADR 0001: メモ探索機能](./docs/adr/0001-memo-discovery-data-and-search.md)
+- [ADR 0002: メモ状態・競合検出・ユーザー設定](./docs/adr/0002-memo-lifecycle-autosave-and-preferences.md)
+
 ## Getting Started
 
 Install dependencies and prepare the local environment:

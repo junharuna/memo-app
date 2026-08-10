@@ -20,7 +20,7 @@ beforeAll(() => {
   });
 });
 
-it("取り消せないことを確認してからメモを削除できる", () => {
+it("取り消せないことを確認してからメモを完全に削除できる", () => {
   render(
     <MemoDeleteButton
       memoId="11111111-1111-4111-8111-111111111111"
@@ -28,12 +28,12 @@ it("取り消せないことを確認してからメモを削除できる", () =
     />,
   );
 
-  fireEvent.click(screen.getByRole("button", { name: "メモを削除" }));
+  fireEvent.click(screen.getByRole("button", { name: "完全に削除" }));
 
-  const dialog = screen.getByRole("dialog", { name: "メモを削除しますか？" });
+  const dialog = screen.getByRole("dialog", { name: "メモを完全に削除しますか？" });
   expect(dialog).toHaveTextContent("「削除対象メモ」");
   expect(dialog).toHaveTextContent("この操作は取り消せません");
-  expect(screen.getByRole("button", { name: "削除を確定" })).toHaveAttribute(
+  expect(screen.getByRole("button", { name: "完全削除を確定" })).toHaveAttribute(
     "type",
     "submit",
   );

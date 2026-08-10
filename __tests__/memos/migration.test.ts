@@ -35,6 +35,14 @@ const categoryColorsMigrationPath = join(
   process.cwd(),
   "supabase/migrations/20260810210000_expand_category_colors.sql",
 );
+const lifecycleMigrationPath = join(
+  process.cwd(),
+  "supabase/migrations/20260810220000_add_memo_lifecycle_and_profiles.sql",
+);
+const profileFunctionMigrationPath = join(
+  process.cwd(),
+  "supabase/migrations/20260810230000_add_profile_preferences_function.sql",
+);
 
 it("メモテーブルを所有権付きで作成しINSERTだけを許可する", () => {
   const sql = readFileSync(migrationPath, "utf8");
@@ -145,5 +153,37 @@ it("既存カテゴリを保持したまま分類色のCHECK制約を10色へ拡
     expect(sql).toContain(`'${color}'`);
   }
   expect(sql).not.toMatch(/\b(update|delete from)\s+public\.categories\b/i);
+  expect(sql).not.toMatch(/\bto anon\b/i);
+});
+
+it("メモの復元可能な状態、競合検出、所有者限定設定を追加する", () => {
+  const sql = readFileSync(lifecycleMigrationPath, "utf8");
+
+  expect(sql).toMatch(/add column favorited_at timestamptz/i);
+  expect(sql).toMatch(/add column archived_at timestamptz/i);
+  expect(sql).toMatch(/add column trashed_at timestamptz/i);
+  expect(sql).toMatch(/add column revision bigint not null default 1/i);
+  expect(sql).toMatch(/create table public\.profiles/i);
+  expect(sql).toMatch(/theme in \('system', 'light', 'dark'\)/i);
+  expect(sql).toMatch(/alter table public\.profiles enable row level security/i);
+  expect(sql).toMatch(/auth\.uid\(\)\) = owner_id/i);
+  expect(sql).toMatch(/for delete[\s\S]+trashed_at is not null/i);
+  expect(sql).toMatch(/create function public\.search_memos_v2/i);
+  expect(sql).toMatch(/create function public\.save_memo_revision/i);
+  expect(sql).toMatch(/expected_revision/i);
+  expect(sql).toMatch(/security invoker/i);
+  expect(sql).not.toMatch(/security definer/i);
+  expect(sql).not.toMatch(/\bto anon\b/i);
+});
+
+it("所有者IDをクライアント入力にせずプロフィールを原子的に保存する", () => {
+  const sql = readFileSync(profileFunctionMigrationPath, "utf8");
+
+  expect(sql).toMatch(/create function public\.save_profile_preferences/i);
+  expect(sql).toMatch(/values \(\(select auth\.uid\(\)\), display_name_input, theme_input\)/i);
+  expect(sql).toMatch(/on conflict \(owner_id\) do update/i);
+  expect(sql).toMatch(/security invoker/i);
+  expect(sql).toMatch(/grant execute[^;]+to authenticated/i);
+  expect(sql).not.toMatch(/security definer/i);
   expect(sql).not.toMatch(/\bto anon\b/i);
 });

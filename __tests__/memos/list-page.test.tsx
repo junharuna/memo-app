@@ -1,5 +1,8 @@
 import { render, screen } from "@testing-library/react";
-import MemosPage, { dynamic } from "../../app/memos/page";
+import MemosPage, {
+  dynamic,
+  generateMetadata,
+} from "../../app/memos/page";
 import { listOrganizationForCurrentUser } from "../../lib/memos/organization-queries";
 import { listMemosForCurrentUser } from "../../lib/memos/queries";
 
@@ -15,15 +18,22 @@ jest.mock("../../lib/memos/queries", () => ({
 jest.mock("../../lib/memos/organization-queries", () => ({
   listOrganizationForCurrentUser: jest.fn(),
 }));
+jest.mock("../../app/memos/[id]/lifecycle/actions", () => ({
+  mutateMemoLifecycleAction: jest.fn(),
+}));
 
 const mockListMemos = jest.mocked(listMemosForCurrentUser);
 const mockListOrganization = jest.mocked(listOrganizationForCurrentUser);
 
 const memos = Array.from({ length: 4 }, (_, index) => ({
+  archivedAt: null,
   id: `${index + 1}`.repeat(8) + "-1111-4111-8111-111111111111",
   title: `${index + 1}件目のメモ`,
   content: `${index + 1}件目の本文`,
   created_at: `2026-08-0${index + 1}T01:00:00.000Z`,
+  favoritedAt: null,
+  revision: 1,
+  trashedAt: null,
   updated_at: `2026-08-0${index + 1}T02:00:00.000Z`,
 }));
 
@@ -64,6 +74,56 @@ describe("MemosPage", () => {
 
   it("認証Cookieに応じてリクエストごとに動的表示する", () => {
     expect(dynamic).toBe("force-dynamic");
+  });
+
+  it.each([
+    [undefined, "すべてのメモ"],
+    ["favorites", "お気に入り"],
+    ["archive", "アーカイブ"],
+    ["trash", "ゴミ箱"],
+  ])("%sビューのページタイトルを返す", async (view, title) => {
+    await expect(
+      generateMetadata({
+        searchParams: Promise.resolve(view ? { view } : {}),
+      }),
+    ).resolves.toMatchObject({ title });
+  });
+
+  it.each([
+    ["favorites", "お気に入り"],
+    ["archive", "アーカイブ"],
+  ])("%sビューをURLから取得して見出しへ反映する", async (view, heading) => {
+    mockListMemos.mockResolvedValue({ status: "success", memos: [memos[0]] });
+
+    render(
+      await MemosPage({ searchParams: Promise.resolve({ view }) }),
+    );
+
+    expect(screen.getByRole("heading", { level: 1, name: heading })).toBeInTheDocument();
+    expect(mockListMemos).toHaveBeenCalledWith({
+      filters: expect.objectContaining({ view }),
+    });
+  });
+
+  it("空のゴミ箱では通常一覧へ戻る導線を表示する", async () => {
+    mockListMemos.mockResolvedValue({ status: "success", memos: [], totalCount: 0 });
+
+    render(
+      await MemosPage({ searchParams: Promise.resolve({ view: "trash" }) }),
+    );
+
+    expect(screen.getByRole("heading", { level: 1, name: "ゴミ箱" })).toBeInTheDocument();
+    expect(screen.getByText("ゴミ箱は空です")).toBeInTheDocument();
+    expect(
+      screen.getByRole("searchbox", { name: "メモの本文を検索" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("combobox", { name: "カテゴリで絞り込む" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "すべてのメモへ戻る" })).toHaveAttribute(
+      "href",
+      "/memos",
+    );
   });
 
   it("認証できない場合はサインインへ移動する", async () => {

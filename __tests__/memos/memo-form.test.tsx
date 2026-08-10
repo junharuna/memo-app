@@ -4,6 +4,10 @@ import { MemoForm } from "../../app/memos/new/memo-form";
 jest.mock("../../app/memos/new/actions", () => ({
   createMemoAction: jest.fn(),
 }));
+jest.mock("../../components/layout/unsaved-changes-guard", () => ({
+  UnsavedChangesGuard: ({ active }: { active: boolean }) =>
+    active ? <span>離脱保護中</span> : null,
+}));
 
 describe("MemoForm", () => {
   it("タイトルとMarkdown本文を入力でき、空のプレビュー状態を表示する", () => {
@@ -54,6 +58,7 @@ describe("MemoForm", () => {
     });
 
     const preview = screen.getByRole("region", { name: "Markdownプレビュー" });
+    expect(screen.getByText("離脱保護中")).toBeInTheDocument();
     expect(preview).toContainElement(screen.getByRole("heading", { level: 1, name: "見出し" }));
     expect(preview.querySelector("strong")).toHaveTextContent("大切");
     expect(preview.querySelector('input[type="checkbox"]')).toBeChecked();

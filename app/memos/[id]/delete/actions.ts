@@ -62,5 +62,5 @@ export async function deleteMemoAction(
 
   revalidatePath("/");
   revalidatePath("/memos");
-  redirect("/memos?toast=memo-deleted");
+  redirect("/memos?view=trash&toast=memo-deleted");
 }

@@ -48,10 +48,14 @@ it("所有するメモを編集フォームへ渡す", async () => {
   mockGetMemo.mockResolvedValue({
     status: "success",
     memo: {
+      archivedAt: null,
       id: memoId,
       title: "編集対象",
       content: "本文",
       created_at: "2026-08-09T01:00:00.000Z",
+      favoritedAt: null,
+      revision: 1,
+      trashedAt: null,
       updated_at: "2026-08-09T02:00:00.000Z",
     },
   });
@@ -65,6 +69,28 @@ it("所有するメモを編集フォームへ渡す", async () => {
     "href",
     `/memos/${memoId}`,
   );
+});
+
+it("ゴミ箱のメモは編集画面を表示しない", async () => {
+  mockGetMemo.mockResolvedValue({
+    status: "success",
+    memo: {
+      archivedAt: null,
+      content: "本文",
+      created_at: "2026-08-09T01:00:00.000Z",
+      favoritedAt: null,
+      id: memoId,
+      revision: 2,
+      title: "ゴミ箱のメモ",
+      trashedAt: "2026-08-10T01:00:00.000Z",
+      updated_at: "2026-08-09T02:00:00.000Z",
+    },
+  });
+
+  await expect(
+    MemoEditPage({ params: Promise.resolve({ id: memoId }) }),
+  ).rejects.toThrow("not-found");
+  expect(mockNotFound).toHaveBeenCalled();
 });
 
 it("不正なIDと所有していないメモは404にする", async () => {

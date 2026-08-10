@@ -55,10 +55,10 @@ afterEach(() => {
 });
 
 describe("deleteMemoAction", () => {
-  it("所有するメモだけを削除して一覧へ戻る", async () => {
+  it("所有するゴミ箱のメモだけを完全削除してゴミ箱一覧へ戻る", async () => {
     await expect(
       deleteMemoAction(memoId, initialDeleteMemoState, createDeleteFormData()),
-    ).rejects.toThrow("redirect:/memos?toast=memo-deleted");
+    ).rejects.toThrow("redirect:/memos?view=trash&toast=memo-deleted");
 
     expect(mockOwnerEq).toHaveBeenCalledWith("owner_id", "user-123");
     expect(mockIdEq).toHaveBeenCalledWith("id", memoId);
@@ -66,7 +66,9 @@ describe("deleteMemoAction", () => {
     expect(mockMaybeSingle).toHaveBeenCalledTimes(1);
     expect(mockRevalidatePath).toHaveBeenCalledWith("/");
     expect(mockRevalidatePath).toHaveBeenCalledWith("/memos");
-    expect(mockRedirect).toHaveBeenCalledWith("/memos?toast=memo-deleted");
+    expect(mockRedirect).toHaveBeenCalledWith(
+      "/memos?view=trash&toast=memo-deleted",
+    );
   });
 
   it("不正なメモIDでは削除しない", async () => {

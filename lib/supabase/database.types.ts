@@ -79,30 +79,42 @@ export type Database = {
       }
       memos: {
         Row: {
+          archived_at: string | null
           category_id: string | null
           content: string
           created_at: string
+          favorited_at: string | null
           id: string
           owner_id: string
+          revision: number
           title: string
+          trashed_at: string | null
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           category_id?: string | null
           content?: string
           created_at?: string
+          favorited_at?: string | null
           id?: string
           owner_id: string
+          revision?: number
           title: string
+          trashed_at?: string | null
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           category_id?: string | null
           content?: string
           created_at?: string
+          favorited_at?: string | null
           id?: string
           owner_id?: string
+          revision?: number
           title?: string
+          trashed_at?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -114,6 +126,30 @@ export type Database = {
             referencedColumns: ["owner_id", "id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          owner_id: string
+          theme: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          owner_id: string
+          theme?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          owner_id?: string
+          theme?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       tags: {
         Row: {
@@ -153,6 +189,25 @@ export type Database = {
         }
         Returns: string
       }
+      save_memo_revision: {
+        Args: {
+          expected_revision: number
+          memo_category_id?: string
+          memo_content: string
+          memo_tag_ids?: string[]
+          memo_title: string
+          target_memo_id: string
+        }
+        Returns: {
+          new_revision: number
+          new_updated_at: string
+          status: string
+        }[]
+      }
+      save_profile_preferences: {
+        Args: { display_name_input: string; theme_input: string }
+        Returns: boolean
+      }
       search_memos: {
         Args: {
           category_filter?: string
@@ -172,6 +227,34 @@ export type Database = {
           tags: Json
           title: string
           total_count: number
+          updated_at: string
+        }[]
+      }
+      search_memos_v2: {
+        Args: {
+          category_filter?: string
+          include_uncategorized?: boolean
+          memo_view?: string
+          result_limit?: number
+          result_offset?: number
+          search_terms?: string[]
+          sort_key?: string
+          tag_filters?: string[]
+        }
+        Returns: {
+          archived_at: string
+          category_color_key: string
+          category_id: string
+          category_name: string
+          content: string
+          created_at: string
+          favorited_at: string
+          id: string
+          revision: number
+          tags: Json
+          title: string
+          total_count: number
+          trashed_at: string
           updated_at: string
         }[]
       }
@@ -317,4 +400,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

@@ -31,6 +31,7 @@ function createFormData(title: string, content = "") {
   const formData = new FormData();
   formData.set("title", title);
   formData.set("content", content);
+  formData.set("expectedRevision", "3");
   return formData;
 }
 
@@ -39,7 +40,16 @@ beforeEach(() => {
     data: { claims: { sub: "user-123" } },
     error: null,
   });
-  mockRpc.mockResolvedValue({ data: true, error: null });
+  mockRpc.mockResolvedValue({
+    data: [
+      {
+        new_revision: 4,
+        new_updated_at: "2026-08-10T01:00:00.000Z",
+        status: "saved",
+      },
+    ],
+    error: null,
+  });
   mockCreateClient.mockResolvedValue({
     auth: { getClaims: mockGetClaims },
     rpc: mockRpc,
@@ -62,12 +72,13 @@ describe("updateMemoAction", () => {
       ),
     ).rejects.toThrow(`redirect:/memos/${memoId}?toast=memo-updated`);
 
-    expect(mockRpc).toHaveBeenCalledWith("update_memo_with_metadata", {
+    expect(mockRpc).toHaveBeenCalledWith("save_memo_revision", {
+      expected_revision: 3,
       memo_category_id: undefined,
       memo_content: content,
-      memo_id: memoId,
       memo_tag_ids: [],
       memo_title: "更新タイトル",
+      target_memo_id: memoId,
     });
     expect(mockRevalidatePath).toHaveBeenCalledWith("/");
     expect(mockRevalidatePath).toHaveBeenCalledWith("/memos");
@@ -109,7 +120,7 @@ describe("updateMemoAction", () => {
   });
 
   it("所有するメモが見つからない場合は更新失敗を返す", async () => {
-    mockRpc.mockResolvedValue({ data: false, error: null });
+    mockRpc.mockResolvedValue({ data: [], error: null });
 
     const result = await updateMemoAction(
       memoId,
@@ -121,6 +132,29 @@ describe("updateMemoAction", () => {
     expect(result.message).toBe(
       "メモを更新できませんでした。入力内容はこの画面に残っています。もう一度お試しください。",
     );
+    expect(mockRedirect).not.toHaveBeenCalled();
+  });
+
+  it("別画面で更新済みの場合は競合を通知して上書きしない", async () => {
+    mockRpc.mockResolvedValue({
+      data: [
+        {
+          new_revision: 4,
+          new_updated_at: "2026-08-10T01:00:00.000Z",
+          status: "conflict",
+        },
+      ],
+      error: null,
+    });
+
+    const result = await updateMemoAction(
+      memoId,
+      initialMemoFormState,
+      createFormData("競合タイトル", "本文"),
+    );
+
+    expect(result.status).toBe("error");
+    expect(result.message).toContain("別の画面で更新");
     expect(mockRedirect).not.toHaveBeenCalled();
   });
 });

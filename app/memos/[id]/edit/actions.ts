@@ -43,6 +43,19 @@ export async function updateMemoAction(
     );
   }
 
+  const expectedRevisionValue = formData.get("expectedRevision");
+  const expectedRevision = Number(expectedRevisionValue);
+  if (
+    typeof expectedRevisionValue !== "string" ||
+    !Number.isSafeInteger(expectedRevision) ||
+    expectedRevision < 1
+  ) {
+    return updateErrorState(
+      previousState,
+      "メモの更新情報が不正です。ページを再読み込みして、もう一度お試しください。",
+    );
+  }
+
   try {
     const supabase = await createClient();
     const { data, error: claimsError } = await supabase.auth.getClaims();
@@ -59,22 +72,45 @@ export async function updateMemoAction(
       );
     }
 
-    const { data: updatedMemo, error } = await supabase.rpc(
-      "update_memo_with_metadata",
+    const { data: saveResults, error } = await supabase.rpc(
+      "save_memo_revision",
       {
+        expected_revision: expectedRevision,
         memo_category_id: categoryId ?? undefined,
         memo_content: content,
-        memo_id: memoId,
         memo_tag_ids: tagIds,
         memo_title: title,
+        target_memo_id: memoId,
       },
     );
+    const saveResult = saveResults?.[0];
 
-    if (error || !updatedMemo) {
+    if (error || !saveResult) {
       if (error) {
         console.error("Memo update failed", error);
       }
 
+      return updateErrorState(
+        previousState,
+        "メモを更新できませんでした。入力内容はこの画面に残っています。もう一度お試しください。",
+      );
+    }
+
+    if (saveResult.status === "conflict") {
+      return updateErrorState(
+        previousState,
+        "このメモは別の画面で更新されています。入力内容をコピーしてから再読み込みしてください。",
+      );
+    }
+
+    if (saveResult.status === "trashed") {
+      return updateErrorState(
+        previousState,
+        "ゴミ箱のメモは編集できません。復元してからもう一度お試しください。",
+      );
+    }
+
+    if (saveResult.status !== "saved") {
       return updateErrorState(
         previousState,
         "メモを更新できませんでした。入力内容はこの画面に残っています。もう一度お試しください。",

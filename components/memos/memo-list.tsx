@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
+import { MemoFavoriteButton } from "@/components/memos/memo-favorite-button";
 import { getCategoryColorPresentation } from "@/lib/memos/category-colors";
 import { createMemoExcerpt } from "@/lib/memos/excerpt";
 import { formatMemoDate } from "@/lib/memos/format";
+import type { MemoView } from "@/lib/memos/lifecycle";
 import type { MemoListResult, MemoRecord } from "@/lib/memos/queries";
 
 type LoadedMemoListResult = Exclude<
@@ -14,6 +16,7 @@ type MemoListProps = {
   filtered?: boolean;
   result: LoadedMemoListResult;
   retryHref: string;
+  view?: MemoView;
 };
 
 function MemoCard({ memo }: { memo: MemoRecord }) {
@@ -30,15 +33,23 @@ function MemoCard({ memo }: { memo: MemoRecord }) {
         className="absolute inset-0 z-10 rounded-[20px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
         href={`/memos/${memo.id}`}
       />
-      <div
-        className="memo-icon"
-        aria-hidden="true"
-        style={{
-          backgroundColor: categoryColor.tint,
-          color: categoryColor.value,
-        }}
-      >
-        <Icon name="fileText" size={20} />
+      <div className="flex items-start justify-between gap-3">
+        <div
+          className="memo-icon"
+          aria-hidden="true"
+          style={{
+            backgroundColor: categoryColor.tint,
+            color: categoryColor.value,
+          }}
+        >
+          <Icon name="fileText" size={20} />
+        </div>
+        {!memo.trashedAt && (
+          <MemoFavoriteButton
+            favorited={memo.favoritedAt !== null}
+            memoId={memo.id}
+          />
+        )}
       </div>
       <div className="relative mt-5">
         <h3 className="line-clamp-2 break-words text-[17px] font-semibold leading-6 tracking-[-0.025em] text-[var(--ink)]">
@@ -115,6 +126,48 @@ function EmptyMemoList() {
   );
 }
 
+const emptyViewPresentation: Record<
+  Exclude<MemoView, "active">,
+  { description: string; icon: "archive" | "star" | "trash"; title: string }
+> = {
+  archive: {
+    description: "使わなくなったメモをアーカイブすると、ここに表示されます。",
+    icon: "archive",
+    title: "アーカイブは空です",
+  },
+  favorites: {
+    description: "大切なメモをお気に入りに追加すると、ここですぐ見つけられます。",
+    icon: "star",
+    title: "お気に入りはまだありません",
+  },
+  trash: {
+    description: "ゴミ箱に移動したメモは、完全に削除するまでここから復元できます。",
+    icon: "trash",
+    title: "ゴミ箱は空です",
+  },
+};
+
+function EmptyLifecycleMemoList({ view }: { view: Exclude<MemoView, "active"> }) {
+  const presentation = emptyViewPresentation[view];
+
+  return (
+    <div className="rounded-[20px] border border-dashed border-[var(--hairline)] bg-[var(--surface-raised)] px-6 py-12 text-center">
+      <span className="memo-icon memo-accent-blue" aria-hidden="true">
+        <Icon name={presentation.icon} size={20} />
+      </span>
+      <h3 className="mt-4 text-lg font-semibold tracking-[-0.025em] text-[var(--ink)]">
+        {presentation.title}
+      </h3>
+      <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+        {presentation.description}
+      </p>
+      <Link className="secondary-button mt-5" href="/memos">
+        すべてのメモへ戻る
+      </Link>
+    </div>
+  );
+}
+
 function EmptyFilteredMemoList() {
   return (
     <div className="rounded-[20px] border border-dashed border-[var(--hairline)] bg-[var(--surface-raised)] px-6 py-12 text-center">
@@ -134,13 +187,23 @@ function EmptyFilteredMemoList() {
   );
 }
 
-export function MemoList({ filtered = false, result, retryHref }: MemoListProps) {
+export function MemoList({
+  filtered = false,
+  result,
+  retryHref,
+  view = "active",
+}: MemoListProps) {
   if (result.status === "error") {
     return <MemoListError retryHref={retryHref} />;
   }
 
   if (result.memos.length === 0) {
-    return filtered ? <EmptyFilteredMemoList /> : <EmptyMemoList />;
+    if (filtered) return <EmptyFilteredMemoList />;
+    return view === "active" ? (
+      <EmptyMemoList />
+    ) : (
+      <EmptyLifecycleMemoList view={view} />
+    );
   }
 
   return (

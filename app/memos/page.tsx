@@ -13,21 +13,53 @@ import {
 import { listOrganizationForCurrentUser } from "@/lib/memos/organization-queries";
 import { listMemosForCurrentUser } from "@/lib/memos/queries";
 
-export const metadata: Metadata = {
-  title: "すべてのメモ",
-  description: "保存したメモを更新日時の新しい順に一覧表示します。",
-};
-
 export const dynamic = "force-dynamic";
 
 type MemosPageProps = {
   searchParams?: Promise<MemoSearchParams>;
 };
 
+const viewPresentation = {
+  active: {
+    description: "保存したメモを、選択した順序で表示しています。",
+    eyebrow: "YOUR LIBRARY",
+    title: "すべてのメモ",
+  },
+  archive: {
+    description: "今は使わないメモを、本文を残したまま保管しています。",
+    eyebrow: "ARCHIVE",
+    title: "アーカイブ",
+  },
+  favorites: {
+    description: "大切なメモだけを、すぐに見つけられます。",
+    eyebrow: "FAVORITES",
+    title: "お気に入り",
+  },
+  trash: {
+    description: "移動したメモを復元するか、完全に削除できます。",
+    eyebrow: "TRASH",
+    title: "ゴミ箱",
+  },
+} as const;
+
+export async function generateMetadata({
+  searchParams = Promise.resolve({}),
+}: MemosPageProps): Promise<Metadata> {
+  const presentation = viewPresentation[
+    parseMemoFilters(await searchParams).view
+  ];
+
+  return {
+    description: presentation.description,
+    title: presentation.title,
+  };
+}
+
 export default async function MemosPage({
   searchParams = Promise.resolve({}),
 }: MemosPageProps) {
   const filters = parseMemoFilters(await searchParams);
+  const presentation = viewPresentation[filters.view];
   const [result, organization] = await Promise.all([
     filters.queryError
       ? Promise.resolve({ memos: [], status: "success" as const, totalCount: 0 })
@@ -58,12 +90,12 @@ export default async function MemosPage({
     <div className="mx-auto w-full max-w-[1480px] px-4 py-7 sm:px-6 sm:py-9 lg:px-8 lg:py-10 xl:px-10">
       <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="eyebrow">YOUR LIBRARY</p>
+          <p className="eyebrow">{presentation.eyebrow}</p>
           <h1 className="mt-2 text-[clamp(2rem,5vw,3.25rem)] font-semibold leading-none tracking-[-0.06em] text-[var(--ink)]">
-            すべてのメモ
+            {presentation.title}
           </h1>
           <p className="mt-3 text-sm leading-6 text-[var(--muted)] sm:text-[15px]">
-            保存したメモを、更新日時の新しい順に表示しています。
+            {presentation.description}
           </p>
         </div>
         <Link
@@ -102,7 +134,12 @@ export default async function MemosPage({
             </p>
           )}
         </div>
-        <MemoList filtered={hasFilters} result={result} retryHref="/memos" />
+        <MemoList
+          filtered={hasFilters}
+          result={result}
+          retryHref={buildMemoListHref({ ...filters, page: 1 })}
+          view={filters.view}
+        />
 
         {result.status === "success" && totalPages > 1 && (
           <nav

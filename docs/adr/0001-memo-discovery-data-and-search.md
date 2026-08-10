@@ -29,7 +29,7 @@ PostgreSQL組み込みの `tsvector` は、英語など辞書のある言語で�
 - `categories` 削除時は `category_id` だけをnullにし、メモを保持する。
 - `tags` と `memos` は `memo_tags` で多対多にする。
 - タグまたはメモ削除時は結合行だけをcascade削除する。
-- カテゴリ色はDesign Systemの3種類に限定し、タグは色を持たない。
+- カテゴリ色はDesign Systemで定義した10種類に限定し、タグは色を持たない。
 
 ### 3. `owner_id` を関連テーブルへ持たせ、複合外部キーとRLSを併用する
 

@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Icon, type IconName } from "@/components/ui/icon";
 
 type NavigationLinkProps = {
   activePath?: string;
+  activeView?: "active" | "archive" | "favorites" | "trash";
   href: string;
   icon: IconName;
   label: string;
@@ -14,13 +15,18 @@ type NavigationLinkProps = {
 
 export function NavigationLink({
   activePath,
+  activeView,
   href,
   icon,
   label,
   variant,
 }: NavigationLinkProps) {
   const pathname = usePathname();
-  const isActive = activePath === pathname;
+  const searchParams = useSearchParams();
+  const currentView = searchParams?.get("view") ?? "active";
+  const isActive =
+    activePath === pathname &&
+    (activeView === undefined || activeView === currentView);
 
   if (variant === "mobile") {
     return (
