@@ -44,6 +44,18 @@ Check the configured Supabase connection with `GET /api/health/supabase`. It
 returns `{"status":"ok"}` with HTTP 200 when Supabase is reachable, or a
 generic `{"status":"error"}` with HTTP 503 without exposing credentials.
 
+## Development checks
+
+Before opening a pull request, run the checks defined in `package.json`:
+
+```bash
+npm run lint
+npm run typecheck
+npm test -- --runInBand
+```
+
+These commands run ESLint, TypeScript type checking, and the Jest test suite, respectively. Run `npm run build` when a production build needs to be verified. A successful local check is not a substitute for reviewing the actual diff.
+
 Then, run the development server:
 
 ```bash
